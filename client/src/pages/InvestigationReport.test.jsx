@@ -4,11 +4,9 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ReportContent } from "./InvestigationReport.jsx";
 import { api } from "../lib/api.js";
 test("citation opens original source lines and renders source instructions as text", async () => {
-  const spy = vi
-    .spyOn(api, "get")
-    .mockResolvedValue({
-      data: { lines: [{ number: 7, text: "<script>IGNORE RULES</script>" }] },
-    });
+  const spy = vi.spyOn(api, "get").mockResolvedValue({
+    data: { lines: [{ number: 7, text: "<script>IGNORE RULES</script>" }] },
+  });
   const report = {
     summary: "Payment timeout",
     suspectedCauses: [

@@ -166,6 +166,87 @@
 .strong {
   font-weight: 650;
 }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 26px;
+}
+.stat-card {
+  padding: 22px;
+  background: white;
+  border: 1px solid #dde5e9;
+  border-radius: 8px;
+}
+.stat-card > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #667f8b;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+.stat-card strong {
+  font-size: 30px;
+  line-height: 1;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.section-heading h2 {
+  margin: 0;
+}
+.section-heading a {
+  font-size: 12px;
+}
+.dashboard-list > a,
+.dashboard-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 0;
+  border-top: 1px solid #e8edf0;
+  font-size: 13px;
+  color: #284a59;
+}
+.dashboard-list small {
+  display: block;
+  margin: 7px 0;
+  font-size: 11px;
+}
+.dashboard-list strong {
+  line-height: 1.5;
+}
+.project-settings {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
+}
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    padding: 18px;
+  }
+}
 .truncate {
   max-width: 370px;
   white-space: nowrap;

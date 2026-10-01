@@ -29,6 +29,11 @@ test("owner CRUD, cross-user isolation, deleting state and safe retry", async ()
       404,
     );
   assert.equal((await other.get("/api/projects")).body.projects.length, 0);
+  assert.equal((await other.get(`/api/projects/${id}/dashboard`)).status, 404);
+  const dashboard = await owner.get(`/api/projects/${id}/dashboard`);
+  assert.equal(dashboard.status, 200);
+  assert.equal(dashboard.body.incidentCount, 0);
+  assert.equal(dashboard.body.activeWork, false);
   assert.equal(
     (
       await owner

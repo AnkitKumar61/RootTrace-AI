@@ -5,6 +5,9 @@ import { authenticate } from "../middleware/auth.js";
 import { projectAccess } from "../middleware/ownership.js";
 import { asyncRoute, AppError } from "../utils/errors.js";
 import { enqueueCleanup } from "../queues/workQueue.js";
+import { Source } from "../models/Source.js";
+import { Incident } from "../models/Incident.js";
+import { Investigation } from "../models/Investigation.js";
 const input = z.object({
   name: z.string().trim().min(2).max(100),
   description: z.string().trim().max(2000).default(""),
@@ -35,6 +38,41 @@ export function projectRoutes(services = {}) {
   );
   router.get("/:projectId", projectAccess(), (req, res) =>
     res.json({ project: req.project }),
+  );
+  router.get(
+    "/:projectId/dashboard",
+    projectAccess(),
+    asyncRoute(async (req, res) => {
+      const projectId = req.project._id;
+      const [sourceGroups, incidents, recentInvestigations, running] =
+        await Promise.all([
+          Source.aggregate([
+            { $match: { projectId } },
+            { $group: { _id: "$status", count: { $sum: 1 } } },
+          ]),
+          Incident.find({ projectId }).sort({ createdAt: -1 }).limit(5),
+          Investigation.find({ projectId })
+            .select(
+              "incidentId status summary evidenceSufficiency failureMessage createdAt",
+            )
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .populate("incidentId", "title"),
+          Investigation.countDocuments({ projectId, status: "RUNNING" }),
+        ]);
+      const sources = Object.fromEntries(
+        sourceGroups.map((s) => [s._id, s.count]),
+      );
+      res.json({
+        sources,
+        incidentCount: await Incident.countDocuments({ projectId }),
+        incidents,
+        recentInvestigations,
+        activeWork:
+          running > 0 ||
+          ["QUEUED", "PROCESSING", "UPLOADED"].some((s) => sources[s] > 0),
+      });
+    }),
   );
   router.patch(
     "/:projectId",

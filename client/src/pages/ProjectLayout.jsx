@@ -1,13 +1,21 @@
-import { Outlet, useParams, Link } from "react-router-dom";
+import { Outlet, useParams, Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import { useResource } from "../hooks/useResource.js";
 import { Loading, Notice, PageHeader } from "../components/UI.jsx";
 import { api } from "../lib/api.js";
 export default function ProjectLayout() {
   const { projectId } = useParams();
-  const { data, loading, error, reload } = useResource(
+  const { data, loading, error, errorStatus, reload } = useResource(
     `/projects/${projectId}`,
     { pollWhile: (d) => d.project.status === "DELETING" },
   );
+  const deleting = useRef(false);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (data?.project.status === "DELETING") deleting.current = true;
+    if (deleting.current && errorStatus === 404)
+      navigate("/projects", { replace: true });
+  }, [data, errorStatus, navigate]);
   if (loading) return <Loading />;
   if (error)
     return (
