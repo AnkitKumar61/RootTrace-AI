@@ -22,6 +22,7 @@ import { ingestSource } from "./services/ingestion.js";
 await connectDatabase();
 const connection = createRedis({ worker: true });
 const queue = getQueue();
+const pendingWrites = new Set();
 const worker = new Worker(
   queueName,
   async (job) => {
@@ -32,14 +33,16 @@ const worker = new Worker(
       return processIngestion(job, { ingest: ingestSource });
     throw new Error("Unknown job type");
   },
-  { connection, concurrency: env.WORKER_CONCURRENCY },
+  { connection, concurrency: env.WORKER_CONCURRENCY, drainDelay: 30 },
 );
 worker.on("failed", (job) => {
-  recordIngestionFailure(job).catch(() =>
+  const write = recordIngestionFailure(job).catch(() =>
     logger.error("Could not persist job failure"),
   );
-  if (job?.name === "cleanup" && job.attemptsMade >= (job.opts.attempts || 1))
-    Project.updateOne(
+  pendingWrites.add(write);
+  write.finally(() => pendingWrites.delete(write));
+  if (job?.name === "cleanup" && job.attemptsMade >= (job.opts.attempts || 1)) {
+    const cleanupWrite = Project.updateOne(
       { _id: job.data.projectId },
       {
         $set: {
@@ -48,6 +51,9 @@ worker.on("failed", (job) => {
         },
       },
     ).catch(() => logger.error("Could not persist cleanup failure"));
+    pendingWrites.add(cleanupWrite);
+    cleanupWrite.finally(() => pendingWrites.delete(cleanupWrite));
+  }
   logger.warn(
     { jobId: job?.id, attempts: job?.attemptsMade },
     "Job attempt failed",
@@ -85,6 +91,7 @@ async function shutdown() {
   stopping = true;
   logger.info("Worker draining");
   await worker.close();
+  await Promise.allSettled([...pendingWrites]);
   await connection.quit();
   await closeQueue();
   await mongoose.disconnect();
@@ -92,3 +99,6 @@ async function shutdown() {
 }
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
+process.on("message", (message) => {
+  if (message === "shutdown") shutdown();
+});

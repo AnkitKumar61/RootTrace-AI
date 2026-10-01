@@ -142,8 +142,8 @@ export default function Sources() {
         )
       )}
       <p className="help-note">
-        Supported formats: .log, .txt, .json, .md · Up to 20 MB per file ·
-        Active sources update automatically.
+        Supported formats: .log, .txt, .json, .md · Active sources update
+        automatically.
       </p>
     </>
   );

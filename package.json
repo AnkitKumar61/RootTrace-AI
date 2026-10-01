@@ -19,7 +19,9 @@
     "lint": "eslint client/src server/src scripts --no-warn-ignored --no-error-on-unmatched-pattern",
     "doctor": "node scripts/doctor.mjs",
     "test:browser": "node scripts/browser-smoke.mjs",
-    "scan:secrets": "node scripts/secret-scan.mjs"
+    "scan:secrets": "node scripts/secret-scan.mjs",
+    "env:setup": "node scripts/setup-env.mjs",
+    "start:local": "node scripts/start-local.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

@@ -2,8 +2,10 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "node:path";
+import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { env } from "./config/env.js";
+import { env, rootDir } from "./config/env.js";
 import { errorHandler } from "./middleware/errors.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
@@ -16,6 +18,7 @@ import { evaluationRoutes } from "./routes/evaluation.js";
 export function createApp(services = {}) {
   const app = express();
   app.disable("x-powered-by");
+  if (env.TRUST_PROXY_HOPS) app.set("trust proxy", env.TRUST_PROXY_HOPS);
   app.use((req, res, next) => {
     req.id = randomUUID();
     res.setHeader("X-Request-ID", req.id);
@@ -39,6 +42,14 @@ export function createApp(services = {}) {
   app.use("/api/incidents", investigationRoutes(services));
   app.use("/api/investigations", reportRoutes());
   app.use("/api/projects/:projectId/evaluation", evaluationRoutes(services));
+  if (env.NODE_ENV === "production") {
+    const directory = path.join(rootDir, "client/dist"),
+      index = path.join(directory, "index.html");
+    if (!existsSync(index))
+      throw new Error("Build the client before starting production");
+    app.use(express.static(directory, { dotfiles: "deny", index: false }));
+    app.get(/^\/(?!api(?:\/|$)).*/, (_req, res) => res.sendFile(index));
+  }
   app.use((_req, res) =>
     res
       .status(404)
