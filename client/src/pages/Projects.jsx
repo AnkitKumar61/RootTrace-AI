@@ -1,13 +1,162 @@
-import {useState} from 'react';
-import {Link} from 'react-router-dom';
-import {Plus,ArrowUpRight,Folder,Trash2} from 'lucide-react';
-import {api,errorMessage} from '../lib/api.js';
-import {useResource} from '../hooks/useResource.js';
-import {PageHeader,Notice,Loading,Empty,Field,Submit,Badge} from '../components/UI.jsx';
-export default function Projects(){
-  const {data,loading,error,reload}=useResource('/projects',{pollWhile:d=>d.projects.some(p=>p.status==='DELETING')});
-  const [creating,setCreating]=useState(false),[busy,setBusy]=useState(false),[failure,setFailure]=useState('');
-  async function create(event){event.preventDefault();setBusy(true);setFailure('');try{await api.post('/projects',Object.fromEntries(new FormData(event.currentTarget)));setCreating(false);reload();}catch(e){setFailure(errorMessage(e));}finally{setBusy(false);}}
-  async function remove(project){if(!window.confirm(`Delete ${project.name} and all its sources, incidents, and reports?`))return;setFailure('');try{await api.delete(`/projects/${project._id}`);reload();}catch(e){setFailure(errorMessage(e));reload();}}
-  return <><PageHeader eyebrow="YOUR WORKSPACE" title="Projects" description="Keep incidents and engineering knowledge together." action={<button className="button" onClick={()=>setCreating(!creating)}><Plus size={17}/>New project</button>}/><Notice>{error||failure}</Notice>{creating&&<section className="panel form-panel"><h2>Create a project</h2><form onSubmit={create}><Field label="Project name"><input name="name" placeholder="e.g. ShopFlow" required minLength={2} maxLength={100}/></Field><Field label="Description"><textarea name="description" placeholder="What does this backend do?" maxLength={2000}/></Field><div className="actions"><Submit busy={busy}>Create project</Submit><button className="button secondary" type="button" onClick={()=>setCreating(false)}>Cancel</button></div></form></section>}{loading?<Loading/>:data?.projects.length?<div className="project-grid">{data.projects.map(project=><article className="project-card" key={project._id}><div className="project-card-top"><div className="project-icon"><Folder size={22}/></div><Badge value={project.status}/></div><h2>{project.name}</h2><p>{project.description||'Add logs and documentation to start investigating.'}</p>{project.cleanupError&&<Notice>{project.cleanupError}</Notice>}<div className="project-card-bottom"><small>Created {new Date(project.createdAt).toLocaleDateString()}</small>{project.status==='DELETING'?<span className="muted">Cleaning up…</span>:<Link to={`/projects/${project._id}`} className="text-link">Open project <ArrowUpRight size={16}/></Link>}</div><button className="delete-project" aria-label={`Delete ${project.name}`} onClick={()=>remove(project)} disabled={project.status==='DELETING'&&!project.cleanupError}><Trash2 size={14}/>{project.cleanupError?'Retry deletion':'Delete'}</button></article>)}</div>:!error&&<Empty title="Your investigations start here" description="Create a project, add your evidence, and investigate backend incidents." action={<button className="button" onClick={()=>setCreating(true)}><Plus size={16}/>Create your first project</button>}/>}</>;
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Plus, ArrowUpRight, Folder, Trash2 } from "lucide-react";
+import { api, errorMessage } from "../lib/api.js";
+import { useResource } from "../hooks/useResource.js";
+import {
+  PageHeader,
+  Notice,
+  Loading,
+  Empty,
+  Field,
+  Submit,
+  Badge,
+} from "../components/UI.jsx";
+export default function Projects() {
+  const { data, loading, error, reload } = useResource("/projects", {
+    pollWhile: (d) => d.projects.some((p) => p.status === "DELETING"),
+  });
+  const [creating, setCreating] = useState(false),
+    [busy, setBusy] = useState(false),
+    [failure, setFailure] = useState("");
+  async function create(event) {
+    event.preventDefault();
+    setBusy(true);
+    setFailure("");
+    try {
+      await api.post(
+        "/projects",
+        Object.fromEntries(new FormData(event.currentTarget)),
+      );
+      setCreating(false);
+      reload();
+    } catch (e) {
+      setFailure(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function remove(project) {
+    if (
+      !window.confirm(
+        `Delete ${project.name} and all its sources, incidents, and reports?`,
+      )
+    )
+      return;
+    setFailure("");
+    try {
+      await api.delete(`/projects/${project._id}`);
+      reload();
+    } catch (e) {
+      setFailure(errorMessage(e));
+      reload();
+    }
+  }
+  return (
+    <>
+      <PageHeader
+        eyebrow="YOUR WORKSPACE"
+        title="Projects"
+        description="Keep incidents and engineering knowledge together."
+        action={
+          <button className="button" onClick={() => setCreating(!creating)}>
+            <Plus size={17} />
+            New project
+          </button>
+        }
+      />
+      <Notice>{error || failure}</Notice>
+      {creating && (
+        <section className="panel form-panel">
+          <h2>Create a project</h2>
+          <form onSubmit={create}>
+            <Field label="Project name">
+              <input
+                name="name"
+                placeholder="e.g. ShopFlow"
+                required
+                minLength={2}
+                maxLength={100}
+              />
+            </Field>
+            <Field label="Description">
+              <textarea
+                name="description"
+                placeholder="What does this backend do?"
+                maxLength={2000}
+              />
+            </Field>
+            <div className="actions">
+              <Submit busy={busy}>Create project</Submit>
+              <button
+                className="button secondary"
+                type="button"
+                onClick={() => setCreating(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+      {loading ? (
+        <Loading />
+      ) : data?.projects.length ? (
+        <div className="project-grid">
+          {data.projects.map((project) => (
+            <article className="project-card" key={project._id}>
+              <div className="project-card-top">
+                <div className="project-icon">
+                  <Folder size={22} />
+                </div>
+                <Badge value={project.status} />
+              </div>
+              <h2>{project.name}</h2>
+              <p>
+                {project.description ||
+                  "Add logs and documentation to start investigating."}
+              </p>
+              {project.cleanupError && <Notice>{project.cleanupError}</Notice>}
+              <div className="project-card-bottom">
+                <small>
+                  Created {new Date(project.createdAt).toLocaleDateString()}
+                </small>
+                {project.status === "DELETING" ? (
+                  <span className="muted">Cleaning up…</span>
+                ) : (
+                  <Link to={`/projects/${project._id}`} className="text-link">
+                    Open project <ArrowUpRight size={16} />
+                  </Link>
+                )}
+              </div>
+              <button
+                className="delete-project"
+                aria-label={`Delete ${project.name}`}
+                onClick={() => remove(project)}
+                disabled={
+                  project.status === "DELETING" && !project.cleanupError
+                }
+              >
+                <Trash2 size={14} />
+                {project.cleanupError ? "Retry deletion" : "Delete"}
+              </button>
+            </article>
+          ))}
+        </div>
+      ) : (
+        !error && (
+          <Empty
+            title="Your investigations start here"
+            description="Create a project, add your evidence, and investigate backend incidents."
+            action={
+              <button className="button" onClick={() => setCreating(true)}>
+                <Plus size={16} />
+                Create your first project
+              </button>
+            }
+          />
+        )
+      )}
+    </>
+  );
 }
