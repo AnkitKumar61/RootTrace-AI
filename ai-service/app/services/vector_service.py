@@ -103,5 +103,26 @@ class VectorService:
                 self.collection, points_selector=models.FilterSelector(filter=query_filter), wait=True
             )
 
+    async def source_chunks(self, project_id, ready_source_ids):
+        query_filter = self.project_filter(project_id)
+        if not ready_source_ids:
+            return []
+        query_filter.must.append(
+            models.FieldCondition(key="sourceId", match=models.MatchAny(any=ready_source_ids))
+        )
+        records, offset = [], None
+        while True:
+            page, offset = await self.client.scroll(
+                self.collection,
+                scroll_filter=query_filter,
+                offset=offset,
+                limit=100,
+                with_payload=True,
+                with_vectors=False,
+            )
+            records.extend(Evidence(**item.payload, evidenceId=str(item.id), score=0) for item in page)
+            if offset is None:
+                return records
+
     async def close(self):
         await self.client.close()

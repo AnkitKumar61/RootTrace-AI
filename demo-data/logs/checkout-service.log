@@ -1,0 +1,15 @@
+2026-09-15T09:00:00Z INFO checkout-service traceId=pool-101 POST /checkout request accepted
+2026-09-15T09:00:01Z WARN checkout-service traceId=pool-101 db.pool active=20 idle=0 waiting=84 max=20
+2026-09-15T09:00:06Z ERROR checkout-service traceId=pool-101 MongoWaitQueueTimeoutError acquire timeout 5000ms
+  at ConnectionPool.acquire (database.js:71)
+2026-09-15T09:00:06Z ERROR checkout-service traceId=pool-101 POST /checkout httpStatus=503 database connection unavailable
+2026-09-15T09:10:00Z INFO checkout-service traceId=normal-201 GET /health httpStatus=200
+2026-09-15T09:11:00Z WARN checkout-service traceId=noise-202 product image cache expired; refreshed successfully
+2026-09-15T09:30:00Z INFO checkout-service traceId=pay-301 POST /checkout awaiting payment authorization
+2026-09-15T09:30:05Z ERROR checkout-service traceId=pay-301 payment dependency timeout; POST /checkout httpStatus=502
+2026-09-15T10:00:00Z INFO checkout-service traceId=inv-401 POST /checkout awaiting inventory reservation
+2026-09-15T10:00:01Z ERROR checkout-service traceId=inv-401 inventory reservation failed upstream httpStatus=503
+2026-09-15T10:30:00Z INFO checkout-service traceId=slow-501 GET /orders/history user=fictional-42
+2026-09-15T10:30:09Z WARN checkout-service traceId=slow-501 db.query collection=orders filter=customerId sort=createdAt plan=COLLSCAN docsExamined=180000 durationMs=9200 indexUsed=none
+2026-09-15T10:30:09Z ERROR checkout-service traceId=slow-501 GET /orders/history httpStatus=504 latency budget exceeded
+2026-09-15T10:40:00Z INFO checkout-service traceId=normal-502 POST /checkout httpStatus=201 durationMs=130

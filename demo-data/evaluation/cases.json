@@ -1,0 +1,261 @@
+{
+  "version": "shopflow-v1",
+  "requiredFiles": [
+    "auth-service.log",
+    "checkout-service.log",
+    "inventory-service.log",
+    "payment-service.log",
+    "api.md",
+    "architecture.md",
+    "runbooks.md"
+  ],
+  "evidence": {
+    "pool-log": {
+      "fileName": "checkout-service.log",
+      "lineStart": 2,
+      "lineEnd": 5
+    },
+    "payment-log": {
+      "fileName": "payment-service.log",
+      "lineStart": 2,
+      "lineEnd": 7
+    },
+    "auth-log": {
+      "fileName": "auth-service.log",
+      "lineStart": 2,
+      "lineEnd": 4
+    },
+    "inventory-log": {
+      "fileName": "inventory-service.log",
+      "lineStart": 2,
+      "lineEnd": 5
+    },
+    "slow-log": {
+      "fileName": "checkout-service.log",
+      "lineStart": 12,
+      "lineEnd": 14
+    },
+    "pool-runbook": {
+      "fileName": "runbooks.md",
+      "lineStart": 1,
+      "lineEnd": 3
+    },
+    "payment-runbook": {
+      "fileName": "runbooks.md",
+      "lineStart": 5,
+      "lineEnd": 7
+    },
+    "auth-runbook": {
+      "fileName": "runbooks.md",
+      "lineStart": 9,
+      "lineEnd": 11
+    },
+    "inventory-runbook": {
+      "fileName": "runbooks.md",
+      "lineStart": 13,
+      "lineEnd": 15
+    },
+    "slow-runbook": {
+      "fileName": "runbooks.md",
+      "lineStart": 17,
+      "lineEnd": 19
+    }
+  },
+  "cases": [
+    {
+      "id": "pool-1",
+      "category": "Database connection pool exhaustion",
+      "incident": {
+        "title": "Checkout database unavailable",
+        "description": "POST /checkout returns 503. MongoWaitQueueTimeoutError occurs after 5000ms with active=20 idle=0 and waiting=84.",
+        "affectedService": "checkout-service",
+        "startTime": "2026-09-15T09:00:00Z",
+        "endTime": "2026-09-15T09:00:59Z"
+      },
+      "knownCause": "Pool capped at 20 connections with no idle capacity.",
+      "expectedEvidenceIds": ["pool-log", "pool-runbook"]
+    },
+    {
+      "id": "pool-2",
+      "category": "Database connection pool exhaustion",
+      "incident": {
+        "title": "Request backlog while acquiring connections",
+        "description": "Checkout requests queue up at database connection acquisition. The database pool waiting count grows although health checks usually succeed.",
+        "affectedService": "checkout-service",
+        "startTime": "2026-09-15T09:00:00Z",
+        "endTime": "2026-09-15T09:00:59Z"
+      },
+      "knownCause": "Pool capped at 20 connections with no idle capacity.",
+      "expectedEvidenceIds": ["pool-log", "pool-runbook"]
+    },
+    {
+      "id": "pool-3",
+      "category": "Database connection pool exhaustion",
+      "incident": {
+        "title": "Checkout pool saturation",
+        "description": "Checkout latency spiked while all twenty database connections were busy. Find logs and guidance for connection pressure and safe next checks.",
+        "affectedService": "checkout-service",
+        "startTime": "2026-09-15T09:00:00Z",
+        "endTime": "2026-09-15T09:00:59Z"
+      },
+      "knownCause": "Pool capped at 20 connections with no idle capacity.",
+      "expectedEvidenceIds": ["pool-log", "pool-runbook"]
+    },
+    {
+      "id": "payment-1",
+      "category": "Payment service timeout",
+      "incident": {
+        "title": "Payment authorization timeout",
+        "description": "Checkout returns 502 after authorization waits five seconds. Payment TCP connection remains pending and reports ETIMEDOUT.",
+        "affectedService": "payment-service",
+        "startTime": "2026-09-15T09:30:00Z",
+        "endTime": "2026-09-15T09:30:59Z"
+      },
+      "knownCause": "Gateway connection exceeds the configured 5000ms timeout.",
+      "expectedEvidenceIds": ["payment-log", "payment-runbook"]
+    },
+    {
+      "id": "payment-2",
+      "category": "Payment service timeout",
+      "incident": {
+        "title": "Gateway connection cannot complete",
+        "description": "Payments stall before authorization response. A retry was logged followed by PaymentConnectionTimeout during trace pay-301.",
+        "affectedService": "payment-service",
+        "startTime": "2026-09-15T09:30:00Z",
+        "endTime": "2026-09-15T09:30:59Z"
+      },
+      "knownCause": "Gateway connection exceeds the configured 5000ms timeout.",
+      "expectedEvidenceIds": ["payment-log", "payment-runbook"]
+    },
+    {
+      "id": "payment-3",
+      "category": "Payment service timeout",
+      "incident": {
+        "title": "Intermittent checkout payment failures",
+        "description": "Payment health was good earlier but checkout later fails waiting for the external sandbox gateway. Investigate the incident-time evidence.",
+        "affectedService": "payment-service",
+        "startTime": "2026-09-15T09:30:00Z",
+        "endTime": "2026-09-15T09:30:59Z"
+      },
+      "knownCause": "Gateway connection exceeds the configured 5000ms timeout.",
+      "expectedEvidenceIds": ["payment-log", "payment-runbook"]
+    },
+    {
+      "id": "auth-1",
+      "category": "Authentication configuration error",
+      "incident": {
+        "title": "Existing sessions rejected after deployment",
+        "description": "Previously valid sessions return 401 immediately after deployment. JwtAudienceMismatch expected shopflow-v2 received shopflow-web.",
+        "affectedService": "auth-service",
+        "startTime": "2026-09-15T11:00:00Z",
+        "endTime": "2026-09-15T11:00:59Z"
+      },
+      "knownCause": "Expected token audience changed from shopflow-web to shopflow-v2.",
+      "expectedEvidenceIds": ["auth-log", "auth-runbook"]
+    },
+    {
+      "id": "auth-2",
+      "category": "Authentication configuration error",
+      "incident": {
+        "title": "Login configuration drift",
+        "description": "Token validation rejects browser sessions after auth configuration changed. Distinguish audience mismatch from users entering incorrect passwords.",
+        "affectedService": "auth-service",
+        "startTime": "2026-09-15T11:00:00Z",
+        "endTime": "2026-09-15T11:00:59Z"
+      },
+      "knownCause": "Expected token audience changed from shopflow-web to shopflow-v2.",
+      "expectedEvidenceIds": ["auth-log", "auth-runbook"]
+    },
+    {
+      "id": "auth-3",
+      "category": "Authentication configuration error",
+      "incident": {
+        "title": "Sudden authorization failures",
+        "description": "Multiple users lose authentication following release. Compare client token audience and deployed authentication settings.",
+        "affectedService": "auth-service",
+        "startTime": "2026-09-15T11:00:00Z",
+        "endTime": "2026-09-15T11:00:59Z"
+      },
+      "knownCause": "Expected token audience changed from shopflow-web to shopflow-v2.",
+      "expectedEvidenceIds": ["auth-log", "auth-runbook"]
+    },
+    {
+      "id": "inventory-1",
+      "category": "Inventory service unavailable",
+      "incident": {
+        "title": "Stock reservation unavailable",
+        "description": "Checkout cannot reserve stock and receives 503. inventory-service readiness is false and its database connection reports ECONNREFUSED.",
+        "affectedService": "inventory-service",
+        "startTime": "2026-09-15T10:00:00Z",
+        "endTime": "2026-09-15T10:00:59Z"
+      },
+      "knownCause": "Inventory database refuses connections and readiness becomes false.",
+      "expectedEvidenceIds": ["inventory-log", "inventory-runbook"]
+    },
+    {
+      "id": "inventory-2",
+      "category": "Inventory service unavailable",
+      "incident": {
+        "title": "Inventory dependency outage",
+        "description": "Reservations fail even when stock was available. Inspect inventory database connectivity and readiness rather than low stock warnings.",
+        "affectedService": "inventory-service",
+        "startTime": "2026-09-15T10:00:00Z",
+        "endTime": "2026-09-15T10:00:59Z"
+      },
+      "knownCause": "Inventory database refuses connections and readiness becomes false.",
+      "expectedEvidenceIds": ["inventory-log", "inventory-runbook"]
+    },
+    {
+      "id": "inventory-3",
+      "category": "Inventory service unavailable",
+      "incident": {
+        "title": "Checkout upstream inventory 503",
+        "description": "Checkout trace inv-401 stops at inventory reservation. Inventory later recovers; determine what the incident-time connection evidence supports.",
+        "affectedService": "inventory-service",
+        "startTime": "2026-09-15T10:00:00Z",
+        "endTime": "2026-09-15T10:00:59Z"
+      },
+      "knownCause": "Inventory database refuses connections and readiness becomes false.",
+      "expectedEvidenceIds": ["inventory-log", "inventory-runbook"]
+    },
+    {
+      "id": "slow-1",
+      "category": "Slow database query",
+      "incident": {
+        "title": "Order history latency exceeded",
+        "description": "GET /orders/history returns 504 after a query takes 9200ms. Explain plan is COLLSCAN with 180000 documents examined and no index.",
+        "affectedService": "checkout-service",
+        "startTime": "2026-09-15T10:30:00Z",
+        "endTime": "2026-09-15T10:30:59Z"
+      },
+      "knownCause": "Order history query scans 180000 documents without an index.",
+      "expectedEvidenceIds": ["slow-log", "slow-runbook"]
+    },
+    {
+      "id": "slow-2",
+      "category": "Slow database query",
+      "incident": {
+        "title": "Orders endpoint degrades with data growth",
+        "description": "Order history filters customerId and sorts createdAt. Slow query logs show a full scan instead of index access.",
+        "affectedService": "checkout-service",
+        "startTime": "2026-09-15T10:30:00Z",
+        "endTime": "2026-09-15T10:30:59Z"
+      },
+      "knownCause": "Order history query scans 180000 documents without an index.",
+      "expectedEvidenceIds": ["slow-log", "slow-runbook"]
+    },
+    {
+      "id": "slow-3",
+      "category": "Slow database query",
+      "incident": {
+        "title": "Database query latency in checkout",
+        "description": "History requests exceed the latency budget while normal checkout still succeeds. Investigate inefficient order queries and supporting runbook advice.",
+        "affectedService": "checkout-service",
+        "startTime": "2026-09-15T10:30:00Z",
+        "endTime": "2026-09-15T10:30:59Z"
+      },
+      "knownCause": "Order history query scans 180000 documents without an index.",
+      "expectedEvidenceIds": ["slow-log", "slow-runbook"]
+    }
+  ]
+}

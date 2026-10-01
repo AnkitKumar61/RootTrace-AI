@@ -1,0 +1,7 @@
+2026-09-15T09:50:00Z INFO inventory-service traceId=normal-inv-1 GET /stock httpStatus=200
+2026-09-15T10:00:00Z WARN inventory-service traceId=inv-401 readiness=false db connection refused host=inventory-db.sandbox.example
+2026-09-15T10:00:00Z ERROR inventory-service traceId=inv-401 ECONNREFUSED inventory database; reservation unavailable
+  at Database.open (inventory-db.js:29)
+2026-09-15T10:00:01Z ERROR inventory-service traceId=inv-401 POST /reserve httpStatus=503
+2026-09-15T10:15:00Z WARN inventory-service traceId=noise-inv-2 low stock warning sku=fictional-book stock=4
+2026-09-15T10:20:00Z INFO inventory-service traceId=normal-inv-3 database connection recovered; readiness=true

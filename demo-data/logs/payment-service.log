@@ -1,0 +1,9 @@
+2026-09-15T09:29:00Z INFO payment-service traceId=normal-pay-1 gateway health status=200 durationMs=45
+2026-09-15T09:30:00Z INFO payment-service traceId=pay-301 authorization started gateway=gateway.sandbox.example
+2026-09-15T09:30:02Z WARN payment-service traceId=pay-301 gateway TCP connection pending retry=1
+2026-09-15T09:30:05Z ERROR payment-service traceId=pay-301 PaymentConnectionTimeout connect ETIMEDOUT after 5000ms
+  at GatewayClient.connect (gateway.js:42)
+  at Payment.authorize (payment.js:86)
+2026-09-15T09:30:05Z ERROR payment-service traceId=pay-301 POST /authorize httpStatus=504
+2026-09-15T09:45:00Z WARN payment-service traceId=noise-pay-2 expired test card rejected httpStatus=422
+2026-09-15T09:46:00Z INFO payment-service traceId=normal-pay-3 authorization succeeded durationMs=80

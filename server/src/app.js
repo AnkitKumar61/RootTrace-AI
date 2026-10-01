@@ -12,6 +12,7 @@ import { projectRoutes } from "./routes/projects.js";
 import { sourceRoutes } from "./routes/sources.js";
 import { incidentRoutes, projectIncidentRoutes } from "./routes/incidents.js";
 import { investigationRoutes, reportRoutes } from "./routes/investigations.js";
+import { evaluationRoutes } from "./routes/evaluation.js";
 export function createApp(services = {}) {
   const app = express();
   app.disable("x-powered-by");
@@ -33,6 +34,7 @@ export function createApp(services = {}) {
   app.use("/api/incidents", incidentRoutes());
   app.use("/api/incidents", investigationRoutes(services));
   app.use("/api/investigations", reportRoutes());
+  app.use("/api/projects/:projectId/evaluation", evaluationRoutes(services));
   app.use((_req, res) =>
     res
       .status(404)

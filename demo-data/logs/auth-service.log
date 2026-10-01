@@ -1,0 +1,6 @@
+{"timestamp":"2026-09-15T08:00:00Z","level":"INFO","service":"auth-service","traceId":"healthy-auth-1","message":"login success","httpStatus":200}
+{"timestamp":"2026-09-15T11:00:00Z","level":"INFO","service":"auth-service","traceId":"auth-601","message":"deployment loaded JWT audience shopflow-v2; client audience shopflow-web"}
+{"timestamp":"2026-09-15T11:00:01Z","level":"ERROR","service":"auth-service","traceId":"auth-601","message":"JwtAudienceMismatch expected=shopflow-v2 received=shopflow-web","httpStatus":401}
+{"timestamp":"2026-09-15T11:00:02Z","level":"WARN","service":"auth-service","traceId":"auth-601","message":"existing sessions rejected following audience configuration change"}
+{"timestamp":"2026-09-15T11:20:00Z","level":"WARN","service":"auth-service","traceId":"noise-auth-2","message":"test user entered incorrect password","httpStatus":401}
+{"timestamp":"2026-09-15T11:21:00Z","level":"INFO","service":"auth-service","traceId":"healthy-auth-3","message":"health check successful","httpStatus":200}
