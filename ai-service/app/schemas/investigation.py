@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -32,6 +32,6 @@ class Report(BaseModel):
     model_config = ConfigDict(extra="forbid")
     summary: str = Field(min_length=1, max_length=3000)
     suspectedCauses: list[Cause] = Field(max_length=8)
-    affectedServices: list[str] = Field(max_length=20)
-    nextSteps: list[str] = Field(min_length=1, max_length=12)
+    affectedServices: list[Annotated[str, Field(min_length=1, max_length=120)]] = Field(max_length=20)
+    nextSteps: list[Annotated[str, Field(min_length=1, max_length=1000)]] = Field(min_length=1, max_length=12)
     evidenceSufficiency: Literal["SUFFICIENT", "PARTIAL", "INSUFFICIENT"]

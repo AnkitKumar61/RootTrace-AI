@@ -66,15 +66,13 @@ export function projectIncidentRoutes() {
     "/",
     projectAccess(true),
     asyncRoute(async (req, res) =>
-      res
-        .status(201)
-        .json({
-          incident: await Incident.create({
-            ...input.parse(req.body),
-            projectId: req.project._id,
-            userId: req.user._id,
-          }),
+      res.status(201).json({
+        incident: await Incident.create({
+          ...input.parse(req.body),
+          projectId: req.project._id,
+          userId: req.user._id,
         }),
+      }),
     ),
   );
   return router;
