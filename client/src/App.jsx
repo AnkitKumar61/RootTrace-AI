@@ -7,6 +7,9 @@ import Projects from "./pages/Projects.jsx";
 import ProjectLayout from "./pages/ProjectLayout.jsx";
 import Sources from "./pages/Sources.jsx";
 import UploadSource from "./pages/UploadSource.jsx";
+import Incidents from "./pages/Incidents.jsx";
+import CreateIncident from "./pages/CreateIncident.jsx";
+import IncidentDetails from "./pages/IncidentDetails.jsx";
 function Protected() {
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
@@ -29,6 +32,12 @@ export default function App() {
               />
               <Route path="sources" element={<Sources />} />
               <Route path="sources/upload" element={<UploadSource />} />
+              <Route path="incidents" element={<Incidents />} />
+              <Route path="incidents/new" element={<CreateIncident />} />
+              <Route
+                path="incidents/:incidentId"
+                element={<IncidentDetails />}
+              />
             </Route>
           </Route>
         </Route>

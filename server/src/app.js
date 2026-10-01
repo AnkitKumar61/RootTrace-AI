@@ -10,6 +10,7 @@ import { authRoutes } from "./routes/auth.js";
 import { checkOrigin } from "./middleware/auth.js";
 import { projectRoutes } from "./routes/projects.js";
 import { sourceRoutes } from "./routes/sources.js";
+import { incidentRoutes, projectIncidentRoutes } from "./routes/incidents.js";
 export function createApp(services = {}) {
   const app = express();
   app.disable("x-powered-by");
@@ -27,6 +28,8 @@ export function createApp(services = {}) {
   app.use("/api/auth", authRoutes());
   app.use("/api/projects", projectRoutes(services));
   app.use("/api/projects/:projectId/sources", sourceRoutes(services));
+  app.use("/api/projects/:projectId/incidents", projectIncidentRoutes());
+  app.use("/api/incidents", incidentRoutes());
   app.use((_req, res) =>
     res
       .status(404)

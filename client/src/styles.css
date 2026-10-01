@@ -10,6 +10,31 @@
   background: #f4f7f9;
   font-synthesis: none;
 }
+.strong {
+  font-weight: 650;
+}
+.truncate {
+  max-width: 370px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.incident-description {
+  margin: 20px 0;
+  white-space: pre-wrap;
+  max-width: 850px;
+}
+@media (max-width: 760px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
 * {
   box-sizing: border-box;
 }
