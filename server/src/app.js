@@ -8,7 +8,8 @@ import { errorHandler } from './middleware/errors.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { checkOrigin } from './middleware/auth.js';
-export function createApp() {
+import { projectRoutes } from './routes/projects.js';
+export function createApp(services={}) {
   const app=express();
   app.disable('x-powered-by');
   app.use((req,res,next)=>{ req.id=randomUUID(); res.setHeader('X-Request-ID',req.id); next(); });
@@ -19,6 +20,7 @@ export function createApp() {
   app.use(checkOrigin);
   app.use('/api/health',healthRoutes());
   app.use('/api/auth',authRoutes());
+  app.use('/api/projects',projectRoutes(services));
   app.use((_req,res)=>res.status(404).json({error:{code:'NOT_FOUND',message:'Route not found.'}}));
   app.use(errorHandler);
   return app;
