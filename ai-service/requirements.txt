@@ -1,0 +1,11 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+pydantic>=2.10,<3
+pydantic-settings>=2.7,<3
+python-multipart>=0.0.20,<1
+qdrant-client>=1.15,<2
+google-genai>=1.40,<2
+httpx>=0.28,<1
+langchain-core>=1.0,<2
+pytest>=8,<9
+ruff>=0.12,<1

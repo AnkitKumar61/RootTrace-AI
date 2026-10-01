@@ -1,0 +1,15 @@
+{
+  "name": "roottrace", "version": "1.0.0", "private": true, "type": "module",
+  "workspaces": ["client", "server"],
+  "engines": {"node": ">=24"},
+  "scripts": {
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "dev:worker": "npm run worker -w server",
+    "build": "npm run build -w client",
+    "test": "npm run test -w server && npm run test -w client",
+    "lint": "eslint client/src server/src scripts --no-warn-ignored --no-error-on-unmatched-pattern",
+    "doctor": "node scripts/doctor.mjs"
+  },
+  "devDependencies": {"eslint": "^9.39.0", "@eslint/js": "^9.39.0", "globals": "^16.0.0"}
+}
