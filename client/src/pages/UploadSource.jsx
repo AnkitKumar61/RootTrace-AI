@@ -3,9 +3,12 @@ import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import { Upload } from "lucide-react";
 import { api, errorMessage } from "../lib/api.js";
 import { Field, Notice, PageHeader, Submit } from "../components/UI.jsx";
+import { useResource } from "../hooks/useResource.js";
 export default function UploadSource() {
   const { project } = useOutletContext();
   const navigate = useNavigate();
+  const configuration = useResource("/health/config");
+  const maximum = configuration.data?.maxFileSizeMB ?? 20;
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [filename, setFilename] = useState("");
@@ -14,8 +17,8 @@ export default function UploadSource() {
     setError("");
     const data = new FormData(event.currentTarget);
     const file = data.get("file");
-    if (file.size > 20 * 1024 * 1024) {
-      setError("Choose a file smaller than 20 MB.");
+    if (file.size > maximum * 1024 * 1024) {
+      setError(`Choose a file smaller than ${maximum} MB.`);
       return;
     }
     setBusy(true);
@@ -47,7 +50,7 @@ export default function UploadSource() {
           <label className="upload-zone">
             <Upload size={28} />
             <strong>{filename || "Choose a text file"}</strong>
-            <span>.log, .txt, .json, .md · Maximum 20 MB</span>
+            <span>.log, .txt, .json, .md · Maximum {maximum} MB</span>
             <input
               type="file"
               name="file"

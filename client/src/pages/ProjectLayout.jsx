@@ -12,6 +12,9 @@ export default function ProjectLayout() {
   const deleting = useRef(false);
   const navigate = useNavigate();
   useEffect(() => {
+    deleting.current = false;
+  }, [projectId]);
+  useEffect(() => {
     if (data?.project.status === "DELETING") deleting.current = true;
     if (deleting.current && errorStatus === 404)
       navigate("/projects", { replace: true });

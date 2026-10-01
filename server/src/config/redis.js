@@ -7,6 +7,7 @@ export function createRedis({ worker = false } = {}) {
     maxRetriesPerRequest: worker ? null : 1,
     enableReadyCheck: false,
     connectTimeout: 5000,
+    ...(worker ? {} : { commandTimeout: 5000 }),
     retryStrategy: (attempt) => Math.min(attempt * 500, 5000),
   });
   connection.on("error", () => logger.warn("Redis connection unavailable"));

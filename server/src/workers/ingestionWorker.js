@@ -26,10 +26,10 @@ export async function processIngestion(job, { ingest } = {}) {
     await job.updateProgress(value);
   };
   await Source.updateOne({ _id: sourceId }, { $inc: { attempts: 1 } });
-  await progress(10, "Validating stored file");
   await fs.access(source.filePath);
+  await progress(10, "Stored file validated");
   if (!(await active())) return { skipped: true };
-  await progress(30, "Parsing, embedding and indexing");
+  await progress(30, "Stored source accepted; parsing, embedding and indexing");
   if (!ingest)
     throw new AppError(
       503,
@@ -58,7 +58,7 @@ export async function recordIngestionFailure(job) {
   if (!job || job.name !== "ingest") return;
   const terminal = job.attemptsMade >= (job.opts.attempts || 1);
   await Source.updateOne(
-    { _id: job.data.sourceId },
+    { _id: job.data.sourceId, status: { $ne: "READY" } },
     {
       $set: {
         status: terminal ? "FAILED" : "QUEUED",

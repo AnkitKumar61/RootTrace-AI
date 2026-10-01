@@ -1,10 +1,12 @@
 import { logger } from "../utils/logger.js";
+import { AppError } from "../utils/errors.js";
 export function errorHandler(error, req, res, _next) {
-  let status = error.status || 500;
-  let code = error.code || "INTERNAL_ERROR";
-  let message = error.status
-    ? error.message
-    : "The operation could not be completed. Please try again.";
+  let status = error instanceof AppError ? error.status : 500;
+  let code = error instanceof AppError ? error.code : "INTERNAL_ERROR";
+  let message =
+    error instanceof AppError
+      ? error.message
+      : "The operation could not be completed. Please try again.";
   if (error.name === "ZodError") {
     status = 400;
     code = "INVALID_INPUT";
@@ -29,6 +31,16 @@ export function errorHandler(error, req, res, _next) {
     status = 400;
     code = "INVALID_UPLOAD";
     message = "The upload is malformed.";
+  }
+  if (error.type === "entity.parse.failed") {
+    status = 400;
+    code = "INVALID_JSON";
+    message = "The request must contain valid JSON.";
+  }
+  if (error.type === "entity.too.large") {
+    status = 413;
+    code = "REQUEST_TOO_LARGE";
+    message = "The request body exceeds the size limit.";
   }
   logger.warn({ requestId: req.id, code, status }, "Request failed");
   res.status(status).json({ error: { code, message, requestId: req.id } });

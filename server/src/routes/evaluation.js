@@ -173,6 +173,16 @@ export function evaluationRoutes({
         throw e;
       }
       try {
+        if (
+          !(await Project.exists({ _id: req.project._id, status: "ACTIVE" }))
+        ) {
+          await EvaluationRun.deleteOne({ _id: run._id });
+          throw new AppError(
+            409,
+            "PROJECT_DELETING",
+            "This project is being deleted.",
+          );
+        }
         const raw = await evaluate({
           projectId: String(req.project._id),
           readySourceIds: sources.map((s) => String(s._id)),

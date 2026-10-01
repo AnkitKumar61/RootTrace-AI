@@ -6,6 +6,7 @@ import { rateLimit } from "express-rate-limit";
 import { authenticate } from "../middleware/auth.js";
 import { projectAccess } from "../middleware/ownership.js";
 import { Source, publicSource } from "../models/Source.js";
+import { Project } from "../models/Project.js";
 import { storage } from "../services/storage.js";
 import { validateFile } from "../validators/upload.js";
 import { env } from "../config/env.js";
@@ -114,6 +115,15 @@ export function sourceRoutes(services = {}) {
       } catch (error) {
         await store.remove(saved.storedFileName);
         throw error;
+      }
+      if (!(await Project.exists({ _id: req.project._id, status: "ACTIVE" }))) {
+        await Source.deleteOne({ _id: source._id });
+        await store.remove(saved.storedFileName);
+        throw new AppError(
+          409,
+          "PROJECT_DELETING",
+          "This project is being deleted.",
+        );
       }
       await queueSource(source);
       res

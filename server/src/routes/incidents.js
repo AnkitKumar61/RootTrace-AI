@@ -65,15 +65,22 @@ export function projectIncidentRoutes() {
   router.post(
     "/",
     projectAccess(true),
-    asyncRoute(async (req, res) =>
-      res.status(201).json({
-        incident: await Incident.create({
-          ...input.parse(req.body),
-          projectId: req.project._id,
-          userId: req.user._id,
-        }),
-      }),
-    ),
+    asyncRoute(async (req, res) => {
+      const incident = await Incident.create({
+        ...input.parse(req.body),
+        projectId: req.project._id,
+        userId: req.user._id,
+      });
+      if (!(await Project.exists({ _id: req.project._id, status: "ACTIVE" }))) {
+        await Incident.deleteOne({ _id: incident._id });
+        throw new AppError(
+          409,
+          "PROJECT_DELETING",
+          "This project is being deleted.",
+        );
+      }
+      res.status(201).json({ incident });
+    }),
   );
   return router;
 }

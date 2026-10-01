@@ -77,6 +77,16 @@ export function investigationRoutes({
         throw e;
       }
       try {
+        if (
+          !(await Project.exists({ _id: req.project._id, status: "ACTIVE" }))
+        ) {
+          await Investigation.deleteOne({ _id: record._id });
+          throw new AppError(
+            409,
+            "PROJECT_DELETING",
+            "This project is being deleted.",
+          );
+        }
         const readyIds = (
           await Source.find({
             projectId: req.project._id,
