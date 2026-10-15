@@ -19,6 +19,10 @@ Multiple-file selection was verified on 2026-10-15: all seven demo files were se
 
 Rate-limit handling was checked on 2026-10-16 after larger-file processing returned 429. Fictional embedding batches reproduced the provider limit. Tests verify 30/60-second fallback waits, provider retry hints, bounded handling of long quota resets, safe internal retry headers, and distinct saved-source messages for quota versus service failures. These checks do not imply that provider quota is always available.
 
+A larger fictional upload also exposed a Qdrant write timeout. Source indexing now writes at most 16 points per request and retries transient storage failures three times using the same deterministic IDs and already-generated vectors. Tests simulate a write that succeeds before its response is lost, verify no duplicate points, and check bounded, redacted failures.
+
+After these changes, a generated 204,889-byte, 2,000-line fictional log was uploaded through the browser, acknowledged with 202, and reached READY with 60 chunks using the managed services. Its verification project was queued for cleanup. Live verification used generated fictional data only.
+
 Desktop and 390-pixel mobile layouts were checked for horizontal overflow, report/evidence stacking, and navigation. Runtime browser errors were checked. Screenshots in this repository contain fictional ShopFlow data only; temporary accounts and sessions stay in ignored local files.
 
 Separate managed-Qdrant checks deliberately supplied source IDs from two different projects. Each search returned only its requested project. The upload smoke test returned in approximately half a second while processing continued in the worker. Live embeddings produced separate finite 768-dimensional vectors. The first live report was persisted with validated source citations.

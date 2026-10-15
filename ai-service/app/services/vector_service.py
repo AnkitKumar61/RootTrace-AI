@@ -1,8 +1,27 @@
+import asyncio
+
 from qdrant_client import AsyncQdrantClient, models
+from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
 from app.schemas.evidence import Evidence
 
 from .providers import ProviderFailure
+
+
+async def retry_vector_write(operation):
+    # Retrying deterministic upserts/deletes is safe even when the server
+    # completed a write but its response was lost. Keep existing embeddings.
+    for attempt in range(3):
+        try:
+            return await operation()
+        except UnexpectedResponse as error:
+            if error.status_code != 429 and error.status_code < 500:
+                raise ProviderFailure() from None
+        except ResponseHandlingException:
+            pass
+        if attempt == 2:
+            raise ProviderFailure() from None
+        await asyncio.sleep(2**attempt)
 
 
 class VectorService:
@@ -49,10 +68,12 @@ class VectorService:
         query_filter.must.append(
             models.FieldCondition(key="sourceId", match=models.MatchValue(value=source_id))
         )
-        await self.client.delete(
-            self.collection, points_selector=models.FilterSelector(filter=query_filter), wait=True
+        await retry_vector_write(
+            lambda: self.client.delete(
+                self.collection, points_selector=models.FilterSelector(filter=query_filter), wait=True
+            )
         )
-        for start in range(0, len(chunks), 64):
+        for start in range(0, len(chunks), 16):
             points = [
                 models.PointStruct(
                     id=chunk.chunkId,
@@ -63,9 +84,9 @@ class VectorService:
                         "embeddingModel": self.settings.embedding_model,
                     },
                 )
-                for chunk, vector in zip(chunks[start : start + 64], vectors[start : start + 64], strict=True)
+                for chunk, vector in zip(chunks[start : start + 16], vectors[start : start + 16], strict=True)
             ]
-            await self.client.upsert(self.collection, points=points, wait=True)
+            await retry_vector_write(lambda: self.client.upsert(self.collection, points=points, wait=True))
         return len(chunks)
 
     async def search(self, project_id, ready_source_ids, query_vector, *, top_k=None, filters=None):
