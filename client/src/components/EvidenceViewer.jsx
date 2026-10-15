@@ -3,9 +3,11 @@ import { api, errorMessage } from "../lib/api.js";
 import { Loading, Notice } from "./UI.jsx";
 export default function EvidenceViewer({ evidence, projectId }) {
   const [data, setData] = useState(null),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
+    let active = true;
     setData(null);
     setError("");
     if (evidence)
@@ -16,13 +18,24 @@ export default function EvidenceViewer({ evidence, projectId }) {
             limit: Math.min(500, evidence.lineEnd - evidence.lineStart + 7),
           },
           signal: controller.signal,
+          timeout: 15000,
         })
-        .then((r) => setData(r.data))
+        .then((r) => {
+          if (active) setData(r.data);
+        })
         .catch((e) => {
-          if (e.code !== "ERR_CANCELED") setError(errorMessage(e));
+          if (active && e.code !== "ERR_CANCELED")
+            setError(
+              e.response
+                ? errorMessage(e)
+                : "The original file could not be loaded. Check that the local app is running, then retry.",
+            );
         });
-    return () => controller.abort();
-  }, [evidence, projectId]);
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [evidence, projectId, attempt]);
   if (!evidence)
     return (
       <div className="panel evidence-viewer">
@@ -68,7 +81,13 @@ export default function EvidenceViewer({ evidence, projectId }) {
       )}
       {error && (
         <>
-          <p className="muted">Saved evidence excerpt</p>
+          <button
+            className="button secondary small"
+            onClick={() => setAttempt((value) => value + 1)}
+          >
+            Retry loading original lines
+          </button>
+          <p className="muted help-note">Saved evidence excerpt</p>
           <pre className="excerpt">{evidence.text}</pre>
         </>
       )}
