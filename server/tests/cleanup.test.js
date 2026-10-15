@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
+import mongoose from "mongoose";
 import { testDatabase } from "./helpers.js";
 import { Project } from "../src/models/Project.js";
 import { Source } from "../src/models/Source.js";
@@ -35,6 +36,8 @@ test("partial deletion resumes idempotently and deletes project last", async () 
     originalFileName: "logs.log",
     sourceType: "log",
   });
+  const legacyRuns = mongoose.connection.collection("evaluationruns");
+  await legacyRuns.insertOne({ projectId: project._id, status: "COMPLETED" });
   let vectorCalls = 0,
     fail = true;
   const options = {
@@ -63,6 +66,7 @@ test("partial deletion resumes idempotently and deletes project last", async () 
   });
   assert.equal(vectorCalls, 1);
   assert.equal(await Source.countDocuments({ projectId: project._id }), 0);
+  assert.equal(await legacyRuns.countDocuments({ projectId: project._id }), 0);
   assert.equal(await Project.findById(project._id), null);
   assert.deepEqual(await cleanupProject(String(project._id), options), {
     skipped: true,

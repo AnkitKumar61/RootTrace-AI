@@ -51,18 +51,11 @@ export async function cleanupProject(
       status: "RUNNING",
       createdAt: { $gte: new Date(Date.now() - 180000) },
     });
-  const evaluations = await mongoose.connection
-    .collection("evaluationruns")
-    .countDocuments({
-      projectId: project._id,
-      status: "RUNNING",
-      createdAt: { $gte: new Date(Date.now() - 360000) },
-    });
-  if (running || evaluations)
+  if (running)
     throw new AppError(
       503,
       "CLEANUP_WAIT",
-      "Waiting for the current investigation or evaluation to stop.",
+      "Waiting for the current investigation to stop.",
     );
   const completed = new Set(project.cleanupSteps);
   const step = async (name, operation) => {
@@ -83,6 +76,7 @@ export async function cleanupProject(
         "sources",
         "incidents",
         "investigations",
+        // Also remove records created by the retired benchmark feature.
         "evaluationruns",
       ])
         await mongoose.connection

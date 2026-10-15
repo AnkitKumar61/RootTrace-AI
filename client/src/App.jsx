@@ -12,7 +12,6 @@ import CreateIncident from "./pages/CreateIncident.jsx";
 import IncidentDetails from "./pages/IncidentDetails.jsx";
 import InvestigationReport from "./pages/InvestigationReport.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import Evaluation from "./pages/Evaluation.jsx";
 function Protected() {
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
@@ -30,7 +29,10 @@ export default function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:projectId" element={<ProjectLayout />}>
               <Route index element={<Dashboard />} />
-              <Route path="evaluation" element={<Evaluation />} />
+              <Route
+                path="evaluation"
+                element={<Navigate to=".." relative="path" replace />}
+              />
               <Route path="sources" element={<Sources />} />
               <Route path="sources/upload" element={<UploadSource />} />
               <Route path="incidents" element={<Incidents />} />

@@ -16,11 +16,11 @@ The Gemini adapter explicitly sends separate Content items per chunk and verifie
 
 Every Qdrant query requires projectId, permitted READY source IDs, and the configured embedding model. Filtering happens in Qdrant before results return. Optional service, source type, and severity filters are supported internally. Service names and the incident window normally enrich the query without removing potentially useful upstream logs or runbooks.
 
-Top-K defaults to eight and can be configured. A minimum cosine similarity of 0.35 excludes very weak matches. Similarity is displayed as relevance, never as causal certainty. Time-window hard filtering, hybrid search, and reranking are future experiments; the initial pipeline is semantic retrieval with metadata constraints.
+Top-K defaults to eight and can be configured. A minimum cosine similarity of 0.35 excludes very weak matches. Similarity scores and model timings stay in internal report metadata; the interface focuses on conclusions and supporting file citations. Time-window hard filtering, hybrid search, and reranking are future experiments; the initial pipeline is semantic retrieval with metadata constraints.
 
 ## Generation
 
-If no evidence is retrieved, the service returns INSUFFICIENT without calling the generation provider. Otherwise, a controlled prompt includes the incident and evidence as JSON, supplied IDs, filenames, original lines, excerpts, and permitted service names. Ground truth from evaluation never appears in this prompt.
+If no evidence is retrieved, the service returns INSUFFICIENT without calling the generation provider. Otherwise, a controlled prompt includes the incident and evidence as JSON, supplied IDs, filenames, original lines, excerpts, and permitted service names.
 
 The system rules treat both incident descriptions and uploaded sources as untrusted data. The model has no tools, network actions, or command execution. It must distinguish observed facts from hypotheses, cite evidence IDs, and acknowledge unrelated or incomplete evidence.
 

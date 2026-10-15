@@ -6,7 +6,7 @@ RootTrace investigates backend incidents using uploaded logs and engineering doc
 
 ## Explain the architecture in one minute
 
-React provides the account, project, upload, incident, report, and evaluation screens. Express owns authentication and business records in MongoDB. Uploads save a private file and enqueue a small BullMQ job in Redis, then return 202. A separate worker streams the file to FastAPI. Python parses and chunks it, generates pretrained embeddings, and indexes them in Qdrant. Investigations retrieve READY project evidence, request structured output from Gemini, validate it, and persist the report through Express.
+React provides the account, project, upload, incident, and report screens. Express owns authentication and business records in MongoDB. Uploads save a private file and enqueue a small BullMQ job in Redis, then return 202. A separate worker streams the file to FastAPI. Python parses and chunks it, generates pretrained embeddings, and indexes them in Qdrant. Investigations retrieve READY project evidence, request structured output from Gemini, validate it, and persist the report through Express.
 
 ## Frontend and REST
 
@@ -24,7 +24,7 @@ Authentication answers who made the request. Authorization answers whether that 
 
 ## MongoDB, Redis, and Qdrant
 
-MongoDB stores business metadata, processing state, report snapshots, and evaluation history. Mongoose defines these models and indexes. A partial unique index prevents simultaneous RUNNING investigations for one incident. MongoDB remains the durable source of work status if Redis queue data is lost.
+MongoDB stores business metadata, processing state, and report snapshots. Mongoose defines these models and indexes. A partial unique index prevents simultaneous RUNNING investigations for one incident. MongoDB remains the durable source of work status if Redis queue data is lost.
 
 Redis holds BullMQ jobs, retry scheduling, and worker coordination. It is not the metadata database. Queue payloads are small file references and IDs. A dedicated worker lets uploads return quickly while expensive parsing/provider calls run separately.
 
@@ -64,14 +64,6 @@ Sources and incident descriptions are treated as untrusted data. The prompt inst
 
 These controls reduce unsupported output. They do not mathematically prove causal truth or semantic entailment. An engineer still reviews the observations and suggested next steps.
 
-## Evaluation
-
-The ShopFlow dataset has 15 fictional cases across five failure categories. Known causes and expected anchors remain outside retrieval/generation prompts. Anchors resolve to actual indexed UUIDs using source filename and original line ranges.
-
-Hit Rate@K asks whether any expected evidence was found. Recall@K asks how much expected evidence was found. Precision@K asks how much retrieved evidence belongs to the annotated expected set. Citation validity and isolation checks test traceability and scope. Provider failures are recorded separately, and metrics show completion coverage.
-
-The live Top-K 8 benchmark found all expected evidence, with 25% strict precision and all 32 accepted citation references valid. The small fictional dataset is a baseline, not a production accuracy claim.
-
 ## Deletion and tradeoffs
 
 Project deletion first marks DELETING and disables new actions. Cleanup waits for outstanding work, removes vectors, files, and related metadata, and deletes the MongoDB project last. Checkpoints make a retry safe after partial completion. Repeating file/vector/record removal is harmless. No distributed transaction or lock is required for this initial deployment.
@@ -88,7 +80,7 @@ The current design needs shared persistent API/worker upload storage and one Fas
 | Deletion             | `server/src/services/cleanup.js`, `ai-service/app/routes/ingestion.py`                      |
 | Parsing/chunking     | `ai-service/app/services/parsing_service.py`, `chunking_service.py`                         |
 | Retrieval/providers  | `embedding_service.py`, `vector_service.py`, `retrieval_service.py`, `llm_service.py`       |
-| Reports/evaluation   | `investigation_service.py`, `evaluation_service.py`, `server/src/validators/report.js`      |
+| Reports              | `investigation_service.py`, `server/src/validators/report.js`                               |
 | Screens              | `client/src/pages`, `client/src/components/EvidenceViewer.jsx`                              |
 | Evidence of behavior | `server/tests`, `client/src/**/*.test.jsx`, `ai-service/tests`, `scripts/browser-smoke.mjs` |
 
@@ -108,7 +100,7 @@ Python service filenames in this table are under `ai-service/app/services`; midd
 
 **What does INSUFFICIENT mean?** Available evidence does not support a cause. With no retrieved evidence, generation is skipped. Unrelated or healthy-only evidence should also lead to insufficient conclusions.
 
-**Does a valid citation guarantee a correct report?** It guarantees reference existence and project scope, not semantic truth. Output review and better evaluation data remain necessary.
+**Does a valid citation guarantee a correct report?** It guarantees reference existence and project scope, not semantic truth. An engineer still checks the cited observations against the proposed explanation.
 
 **How would you improve retrieval?** Inspect failed cases, compare Top-K values, improve parsers and annotations, and test metadata filtering. Add hybrid retrieval or reranking only when those measurements identify a need.
 

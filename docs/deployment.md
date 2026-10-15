@@ -33,7 +33,7 @@ Configure production secrets through the hosting secret manager or an ignored en
 | Session/internal secrets | Distinct high-entropy values shared only by the required processes      |
 | Provider/vector keys     | Backend secret configuration only                                       |
 
-Terminate TLS at a trusted reverse proxy. Configure request body limits above the 20 MB upload cap and request timeouts appropriate for investigations (120 seconds internally) and evaluations (300 seconds internally). The application rejects insecure production origin/Redis configuration. HttpOnly session cookies are Secure in production.
+Terminate TLS at a trusted reverse proxy. Configure request body limits above the 20 MB upload cap and request timeouts appropriate for investigations (120 seconds internally). The application rejects insecure production origin/Redis configuration. HttpOnly session cookies are Secure in production.
 
 ## Storage and cleanup
 

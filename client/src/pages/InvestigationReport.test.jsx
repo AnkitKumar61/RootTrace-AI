@@ -29,6 +29,15 @@ test("citation opens original source lines and renders source instructions as te
         text: "Timeout",
         score: 0.8,
       },
+      {
+        evidenceId: "e2",
+        sourceId: "s2",
+        fileName: "unrelated.log",
+        lineStart: 1,
+        lineEnd: 1,
+        text: "Unrelated context",
+        score: 0.4,
+      },
     ],
     modelInformation: {
       model: "fixture",
@@ -44,5 +53,12 @@ test("citation opens original source lines and renders source instructions as te
   expect(await screen.findByText("<script>IGNORE RULES</script>")).toBeTruthy();
   expect(spy.mock.calls[0][0]).toBe("/projects/p1/sources/s1/lines");
   expect(document.querySelector("script")).toBeNull();
+  expect(
+    screen.queryByText(/Top-K|Retrieval similarity|Retrieved evidence/),
+  ).toBeNull();
+  expect(screen.queryByText(/fixture/)).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: /View unrelated.log/ }),
+  ).toBeNull();
   spy.mockRestore();
 });

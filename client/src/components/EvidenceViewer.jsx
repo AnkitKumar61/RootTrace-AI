@@ -51,10 +51,6 @@ export default function EvidenceViewer({ evidence, projectId }) {
         Lines {evidence.lineStart}–{evidence.lineEnd}
         {evidence.section && ` · ${evidence.section}`}
       </p>
-      <small>
-        Retrieval similarity: {evidence.score.toFixed(3)} · This score measures
-        relevance, not certainty.
-      </small>
       <Notice>{error}</Notice>
       {!data && !error && <Loading label="Loading original lines…" />}
       {data && (

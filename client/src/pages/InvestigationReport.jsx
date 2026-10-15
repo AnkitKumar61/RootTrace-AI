@@ -72,24 +72,6 @@ export function ReportContent({ report, projectId }) {
             ))}
           </ol>
         </section>
-        <section className="panel">
-          <h2>
-            Retrieved evidence{" "}
-            <span className="muted">({report.retrievedEvidence.length})</span>
-          </h2>
-          <p className="muted">
-            Retrieval may include contextual or unrelated matches. Conclusions
-            cite only their supporting records.
-          </p>
-          <div className="evidence-list">
-            {report.retrievedEvidence.map((e) => citation(e.evidenceId))}
-          </div>
-        </section>
-        <p className="help-note">
-          {report.modelInformation.model} · Top-K {report.modelInformation.topK}{" "}
-          · Retrieval {report.modelInformation.retrievalDurationMs} ms ·
-          Generation {report.modelInformation.generationDurationMs} ms
-        </p>
       </div>
       <EvidenceViewer evidence={selected} projectId={projectId} />
     </div>

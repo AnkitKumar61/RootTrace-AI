@@ -7,11 +7,11 @@ An evidence-backed backend incident investigation dashboard. Upload logs and run
 ## Application
 
 - Account registration, cookie sessions, logout, and project ownership.
-- Projects, dashboard, multiple-file upload with per-file status/retry, incidents, report history, and evaluation.
+- Projects, dashboard, multiple-file upload with per-file status/retry, incidents, and report history.
 - Logs and documents retain their original line references, sections, and stack traces.
 - Reports distinguish `SUFFICIENT`, `PARTIAL`, and `INSUFFICIENT` evidence.
 - Project deletion removes vectors, files, and records through retryable cleanup.
-- A fictional ShopFlow benchmark includes 15 cases across five failure categories.
+- Fictional ShopFlow logs and runbooks are included for trying the complete workflow.
 
 ## Stack
 
@@ -24,7 +24,7 @@ An evidence-backed backend incident investigation dashboard. Upload logs and run
 | Evidence index          | Qdrant, 768-dimensional cosine embeddings               |
 | Metadata                | MongoDB                                                 |
 
-The browser calls Express. The worker streams uploaded file bytes to FastAPI. FastAPI handles parsing, embeddings, retrieval, report generation, and evaluation. LangChain is used only for controlled prompt formatting.
+The browser calls Express. The worker streams uploaded file bytes to FastAPI. FastAPI handles parsing, embeddings, retrieval, and report generation. LangChain is used only for controlled prompt formatting.
 
 ## Local setup
 
@@ -79,9 +79,7 @@ Each command runs in its own terminal. The API uses port 5000; analysis uses 800
 4. Wait for all seven sources to reach `READY`.
 5. Create an incident such as “Checkout returns 502 while payment gateway connections time out after 5000ms.”
 6. Investigate, reopen the saved report, and select a citation.
-7. Open Evaluation and run Top-K 8. Report/citation checks are optional and consume additional provider quota.
-
-The [evaluation guide](docs/evaluation.md) covers metrics and the command-line runner.
+7. Review the possible cause and suggested checks. Reports stay available under the incident and on the project dashboard.
 
 ## Checks
 
@@ -104,7 +102,7 @@ npm run test:queue -w server
 npm run test:browser -- --cleanup
 ```
 
-The browser check registers fictional accounts, uploads the dataset through the interface, investigates, opens original citations, evaluates, checks ownership and responsive layouts, and deletes its project. Screenshots and temporary session details stay under ignored `.local/browser`. Windows uses installed Edge. On Linux/macOS, run `npx playwright install chromium` first. `--reports` adds report checks to the browser evaluation.
+The browser check registers fictional accounts, uploads sample files through the interface, investigates, opens original citations, checks ownership and responsive layouts, and deletes its project. Screenshots and temporary session details stay under ignored `.local/browser`. Windows uses installed Edge. On Linux/macOS, run `npx playwright install chromium` first.
 
 CI runs builds, isolated Node/React/Python tests, dependency checks, and a full-history secret scan without production credentials.
 
@@ -118,7 +116,6 @@ The API and worker share private upload storage. FastAPI receives file bytes and
 
 - [Architecture and interfaces](docs/architecture.md)
 - [Retrieval, evidence, and report validation](docs/rag-design.md)
-- [Evaluation](docs/evaluation.md)
 - [Verified behavior and limits](docs/verification.md)
 - [Deployment preparation](docs/deployment.md)
 - [Interview notes](docs/interview-notes.md)

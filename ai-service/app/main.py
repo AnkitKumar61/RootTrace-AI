@@ -3,7 +3,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.core.security import get_settings, require_internal
-from app.routes.evaluation import router as evaluation_router
 from app.routes.ingestion import router as ingestion_router
 from app.routes.investigation import router as investigation_router
 from app.services.pipeline import get_pipeline
@@ -12,7 +11,6 @@ from app.services.providers import ProviderFailure
 app = FastAPI(title="RootTrace analysis service", docs_url=None, redoc_url=None)
 app.include_router(ingestion_router)
 app.include_router(investigation_router)
-app.include_router(evaluation_router)
 
 
 @app.get("/health")

@@ -191,24 +191,14 @@ try {
     fullPage: true,
   });
   await page.setViewportSize({ width: 1440, height: 1000 });
+  assert.equal(
+    await page.getByRole("link", { name: "Evaluation", exact: true }).count(),
+    0,
+  );
   await page.goto(`${projectURL}/evaluation`);
-  await page
-    .getByRole("button", { name: "Run evaluation", exact: true })
-    .waitFor();
-  if (process.argv.includes("--reports"))
-    await page.getByRole("checkbox", { name: /Include report/ }).check();
-  await page
-    .getByRole("button", { name: "Run evaluation", exact: true })
-    .click();
-  await page
-    .getByRole("heading", { name: "Run results", exact: true })
-    .waitFor({ timeout: 320000 });
-  await page.getByText(/15 \/ 15 cases completed/).waitFor();
-  await page.screenshot({
-    path: path.join(artifacts, "evaluation.png"),
-    fullPage: true,
-  });
-  console.log("Evaluation results and desktop/mobile navigation passed.");
+  await page.waitForURL(projectURL);
+  await page.getByRole("heading", { name: "Recent investigations" }).waitFor();
+  console.log("Simplified navigation and legacy bookmark redirect passed.");
   // A separate browser has no credentials for this user's resources.
   const stranger = await browser.newContext();
   const unauthenticated = await stranger.request.get(
@@ -243,7 +233,6 @@ try {
   for (const resource of [
     `projects/${projectId}`,
     `projects/${projectId}/sources`,
-    `projects/${projectId}/evaluation`,
     `incidents/${new URL(incidentURL).pathname.split("/").at(-1)}`,
     `investigations/${new URL(reportURL).pathname.split("/").at(-1)}`,
   ])

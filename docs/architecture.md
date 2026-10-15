@@ -16,7 +16,7 @@ flowchart LR
 
 ## Boundaries
 
-Express owns users, projects, source status, incidents, persisted reports, and evaluation runs. MongoDB stores this metadata and report snapshots. It does not store embeddings.
+Express owns users, projects, source status, incidents, and persisted reports. MongoDB stores this metadata and report snapshots. It does not store embeddings.
 
 The worker performs expensive ingestion outside the upload request. Queue payloads contain source/project IDs and a private file reference; uploaded bytes are not copied into Redis. API and worker must share their upload directory.
 
@@ -33,9 +33,8 @@ The frontend uses local component state, a small account context, and a reusable
 | Source        | Project/owner, original filename, hidden storage reference, progress/status, attempts, chunk count |
 | Incident      | Project/owner, symptoms, service, incident window, OPEN/RESOLVED state                             |
 | Investigation | Incident/project/owner, lifecycle, validated report, evidence snapshot, model timings              |
-| EvaluationRun | Project/owner, lifecycle, Top-K, measured case outcomes and metrics                                |
 
-A partial unique MongoDB index permits one RUNNING investigation per incident and one RUNNING evaluation per project. Expired runs can be marked failed before a retry. These are admission constraints, not distributed locks.
+A partial unique MongoDB index permits one RUNNING investigation per incident. Expired runs can be marked failed before a retry. This is an admission constraint, not a distributed lock.
 
 ## Public REST API
 
@@ -59,9 +58,6 @@ All project-scoped operations derive identity from the session and enforce owner
 | GET                  | `/api/incidents/:incidentId/investigations`                          | Investigation history                             |
 | POST                 | `/api/incidents/:incidentId/investigate`                             | Retrieve, generate, validate, and persist         |
 | GET                  | `/api/investigations/:id`                                            | Saved report                                      |
-| GET / POST           | `/api/projects/:projectId/evaluation`                                | Run history / execute dataset                     |
-| GET                  | `/api/projects/:projectId/evaluation/dataset`                        | Required files and missing READY sources          |
-| GET                  | `/api/projects/:projectId/evaluation/:id`                            | Full saved measurements                           |
 | GET                  | `/api/health`                                                        | Liveness                                          |
 | GET                  | `/api/health/ready`                                                  | MongoDB, Redis, and analysis readiness            |
 | GET                  | `/api/health/config`                                                 | Safe upload configuration                         |
@@ -70,14 +66,13 @@ Mutating browser requests must have the configured origin. Production cookies ar
 
 ## Internal REST API
 
-`X-Service-Secret` is required on ingestion, retrieval, investigation, evaluation, cleanup, and readiness.
+`X-Service-Secret` is required on ingestion, retrieval, investigation, cleanup, and readiness.
 
 | Method | Path                     | Input                                                                 |
 | ------ | ------------------------ | --------------------------------------------------------------------- |
 | POST   | `/internal/ingest`       | Multipart bytes plus project/source ID and source type                |
 | POST   | `/internal/retrieve`     | Incident, project, READY source IDs, Top-K, optional metadata filters |
 | POST   | `/internal/investigate`  | Incident and project evidence scope                                   |
-| POST   | `/internal/evaluate`     | Project evidence scope, Top-K, optional report checks                 |
 | DELETE | `/internal/projects/:id` | Cancel in-flight ingestion and delete project vectors                 |
 
 ## Ingestion and deletion
@@ -88,6 +83,6 @@ Upload validation enforces extension, actual UTF-8 text, no NUL bytes, and the c
 
 Source states are UPLOADED → QUEUED → PROCESSING → READY, with bounded retries leading to FAILED. Worker concurrency defaults to one, ingestion attempts to three, and exponential backoff to five seconds initially. Queue retention is bounded to 100 completed and 200 failed jobs. Restart reconciliation requeues missing work from MongoDB.
 
-Deletion first marks the project DELETING and rejects new work. Cleanup waits for active ingestion/investigation/evaluation, removes pending source jobs, and runs checkpointed vector, file, and record removal. Each operation tolerates prior deletion. MongoDB project deletion is the final step. Workers skip projects that are absent or deleting. Uploads racing deletion remove their newly saved file and metadata rather than leaving an orphan.
+Deletion first marks the project DELETING and rejects new work. Cleanup waits for active ingestion/investigation, removes pending source jobs, and runs checkpointed vector, file, and record removal. Each operation tolerates prior deletion. MongoDB project deletion is the final step. Workers skip projects that are absent or deleting. Uploads racing deletion remove their newly saved file and metadata rather than leaving an orphan. Cleanup also removes legacy benchmark records created by earlier versions when their project is deleted.
 
 Important files: `server/src/app.js`, `server/src/routes`, `server/src/workers/ingestionWorker.js`, `server/src/services/cleanup.js`, `ai-service/app/services`, and `client/src/pages`.

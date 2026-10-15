@@ -6,7 +6,6 @@ import {
   Folder,
   FileText,
   TriangleAlert,
-  ChartNoAxesCombined,
   LogOut,
   Menu,
   X,
@@ -23,7 +22,6 @@ export default function Layout() {
     ["", LayoutDashboard, "Overview"],
     ["/sources", FileText, "Sources"],
     ["/incidents", TriangleAlert, "Incidents"],
-    ["/evaluation", ChartNoAxesCombined, "Evaluation"],
   ];
   return (
     <div className="app-shell">
