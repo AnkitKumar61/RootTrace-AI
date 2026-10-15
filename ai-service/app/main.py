@@ -41,6 +41,7 @@ async def provider_failure(_request: Request, error: ProviderFailure):
             else "Provider request unavailable."
         },
         status_code=error.status,
+        headers={"Retry-After": str(error.retry_after)} if error.retry_after else None,
     )
 
 

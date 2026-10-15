@@ -54,18 +54,35 @@ export async function processIngestion(job, { ingest } = {}) {
   await job.updateProgress(100);
   return result;
 }
-export async function recordIngestionFailure(job) {
+export async function recordIngestionFailure(job, error) {
   if (!job || job.name !== "ingest") return;
   const terminal = job.attemptsMade >= (job.opts.attempts || 1);
+  const quotaReached = error?.code === "PROVIDER_LIMIT";
+  let processingError = terminal
+    ? "Processing failed after retries. Check service availability and retry this source."
+    : "Temporary processing failure. A retry is scheduled.";
+  if (quotaReached)
+    processingError = terminal
+      ? "The processing provider's usage limit was reached. Your file is saved. Wait for the limit to reset, then retry this source."
+      : "The processing provider's usage limit was reached. Your file is saved and an automatic retry is scheduled.";
+  else if (error?.code === "ANALYSIS_UNAVAILABLE")
+    processingError = terminal
+      ? "The analysis service could not be reached or complete processing. Your file is saved. Check that the service is running, then retry."
+      : "The analysis service is unavailable. Your file is saved and an automatic retry is scheduled.";
+  else if (error?.code === "ANALYSIS_VALIDATION")
+    processingError =
+      "The analysis service could not process this file. Check its text content and supported format before retrying.";
   await Source.updateOne(
     { _id: job.data.sourceId, status: { $ne: "READY" } },
     {
       $set: {
         status: terminal ? "FAILED" : "QUEUED",
-        processingStage: terminal ? "Processing failed" : "Waiting to retry",
-        processingError: terminal
-          ? "Processing failed after retries. Check service availability and retry this source."
-          : "Temporary processing failure. A retry is scheduled.",
+        processingStage: terminal
+          ? quotaReached
+            ? "Provider usage limit reached"
+            : "Processing failed"
+          : "Waiting to retry",
+        processingError,
       },
     },
   );

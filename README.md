@@ -130,6 +130,8 @@ The repository includes a fictional shopping application with four service logs 
 
 The report is saved under the incident and linked from the project overview. Report wording can vary; provider errors or quota limits are shown as failures rather than replaced with sample results.
 
+If processing reports a **provider usage limit**, the file is still saved. Wait for the provider limit to reset, then use **Retry** on Sources instead of uploading the same file again. Processing waits between rate-limit retries and respects provider retry timing when supplied.
+
 ## How it works
 
 ```mermaid

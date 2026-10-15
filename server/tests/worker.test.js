@@ -6,6 +6,7 @@ import os from "node:os";
 import { testDatabase } from "./helpers.js";
 import { Project } from "../src/models/Project.js";
 import { Source } from "../src/models/Source.js";
+import { AppError } from "../src/utils/errors.js";
 import {
   processIngestion,
   recordIngestionFailure,
@@ -90,4 +91,50 @@ test("retries end in FAILED and skip deleting or missing projects", async () => 
     await processIngestion(job, { ingest: async () => assert.fail() }),
     { skipped: true },
   );
+});
+
+test("provider limits remain clear through retries without exposing raw errors", async () => {
+  const { source, job } = await fixture();
+  const error = new AppError(
+    429,
+    "PROVIDER_LIMIT",
+    "private provider response must not be exposed",
+  );
+  await recordIngestionFailure(job, error);
+  let saved = await Source.findById(source._id);
+  assert.equal(saved.status, "QUEUED");
+  assert.match(saved.processingError, /usage limit.*automatic retry/);
+  assert.doesNotMatch(saved.processingError, /private provider/);
+  job.attemptsMade = 3;
+  await recordIngestionFailure(job, error);
+  saved = await Source.findById(source._id);
+  assert.equal(saved.status, "FAILED");
+  assert.equal(saved.processingStage, "Provider usage limit reached");
+  assert.match(saved.processingError, /Your file is saved.*limit to reset/);
+  assert.doesNotMatch(
+    saved.processingError,
+    /Check service availability|private provider/,
+  );
+  await processIngestion(job, { ingest: async () => ({ chunkCount: 2 }) });
+  await recordIngestionFailure(job, error);
+  saved = await Source.findById(source._id);
+  assert.equal(saved.status, "READY");
+  assert.equal(saved.processingError, "");
+});
+
+test("service failures and unknown errors use distinct safe messages", async () => {
+  const { source, job } = await fixture();
+  job.attemptsMade = 3;
+  await recordIngestionFailure(
+    job,
+    new AppError(503, "ANALYSIS_UNAVAILABLE", "private address"),
+  );
+  assert.match(
+    (await Source.findById(source._id)).processingError,
+    /analysis service.*Your file is saved/,
+  );
+  await recordIngestionFailure(job, new Error("private address"));
+  const saved = await Source.findById(source._id);
+  assert.match(saved.processingError, /Processing failed after retries/);
+  assert.doesNotMatch(saved.processingError, /private address/);
 });

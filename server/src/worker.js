@@ -35,8 +35,8 @@ const worker = new Worker(
   },
   { connection, concurrency: env.WORKER_CONCURRENCY, drainDelay: 30 },
 );
-worker.on("failed", (job) => {
-  const write = recordIngestionFailure(job).catch(() =>
+worker.on("failed", (job, error) => {
+  const write = recordIngestionFailure(job, error).catch(() =>
     logger.error("Could not persist job failure"),
   );
   pendingWrites.add(write);

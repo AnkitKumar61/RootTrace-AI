@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.routes.ingestion import deleted_projects
 from app.services.pipeline import get_pipeline
+from app.services.providers import ProviderFailure
 
 
 class Embeddings:
@@ -55,3 +56,25 @@ def test_internal_auth_ingestion_validation_and_deleted_project_barrier():
     finally:
         app.dependency_overrides.clear()
         deleted_projects.clear()
+
+
+def test_ingestion_quota_failure_has_safe_reason_and_retry_timing():
+    class LimitedEmbeddings:
+        async def embed_batch(self, texts, **kwargs):
+            raise ProviderFailure(429, retry_after=120)
+
+    pipeline = FakePipeline()
+    pipeline.embeddings = LimitedEmbeddings()
+    app.dependency_overrides[get_pipeline] = lambda: pipeline
+    try:
+        response = TestClient(app).post(
+            "/internal/ingest",
+            data={"projectId": "c" * 24, "sourceId": "d" * 24, "sourceType": "document"},
+            files={"file": ("notes.txt", b"Fictional service configuration notes.", "text/plain")},
+            headers={"X-Service-Secret": "test-only-internal-service-value-12345"},
+        )
+        assert response.status_code == 429
+        assert response.headers["retry-after"] == "120"
+        assert response.json() == {"detail": "Provider quota reached. Retry later."}
+    finally:
+        app.dependency_overrides.clear()

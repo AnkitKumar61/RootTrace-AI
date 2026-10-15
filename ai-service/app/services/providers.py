@@ -1,12 +1,14 @@
 import asyncio
+import math
 
 from google import genai
 from google.genai import types
 
 
 class ProviderFailure(Exception):
-    def __init__(self, status=503):
+    def __init__(self, status=503, retry_after=None):
         self.status = status
+        self.retry_after = retry_after
         super().__init__("Provider request unavailable")
 
 
@@ -19,6 +21,29 @@ def gemini_client(settings):
     )
 
 
+def retry_delay(error):
+    """Read only retry timing; never expose provider messages or request data."""
+    delays = []
+    response = getattr(error, "response", None)
+    headers = getattr(response, "headers", {}) or {}
+    candidates = [headers.get("retry-after")]
+    payload = getattr(error, "details", {})
+    if isinstance(payload, dict):
+        payload = payload.get("error", payload)
+        if isinstance(payload, dict):
+            for detail in payload.get("details", []) or []:
+                if isinstance(detail, dict):
+                    candidates.append(detail.get("retryDelay"))
+    for value in candidates:
+        try:
+            seconds = float(str(value).removesuffix("s"))
+            if math.isfinite(seconds) and seconds > 0:
+                delays.append(math.ceil(seconds))
+        except (ValueError, TypeError):
+            pass
+    return max(delays, default=0)
+
+
 async def retry_provider(operation):
     for attempt in range(3):
         try:
@@ -27,6 +52,9 @@ async def retry_provider(operation):
             code = getattr(error, "code", None)
             if code in [400, 401, 403, 404]:
                 raise ProviderFailure(503) from None
-            if attempt == 2:
-                raise ProviderFailure(429 if code == 429 else 503) from None
-            await asyncio.sleep(2**attempt)
+            delay = max(30 * 2**attempt, retry_delay(error)) if code == 429 else 2**attempt
+            # Long quota resets should surface as an honest retryable failure,
+            # rather than keeping an ingestion request open indefinitely.
+            if attempt == 2 or (code == 429 and delay > 60):
+                raise ProviderFailure(429 if code == 429 else 503, delay if code == 429 else None) from None
+            await asyncio.sleep(delay)
