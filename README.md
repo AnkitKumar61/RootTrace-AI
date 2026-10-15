@@ -1,34 +1,58 @@
 # RootTrace
 
-An evidence-backed backend incident investigation dashboard. Upload logs and runbooks, track asynchronous indexing, describe an incident, and inspect a saved report with citations to the original source lines.
+### Find the evidence behind an application failure.
 
-![Saved investigation report](docs/screenshots/report-desktop.png)
+RootTrace helps developers investigate incidents using application logs and optional documentation. Upload relevant files, describe the problem, and get a saved report with suspected causes, suggested checks, and clickable references to the original file lines.
 
-## Application
+[Quick start](#quick-start) · [Try the demo](#try-it-with-shopflow) · [How it works](#how-it-works) · [Documentation](#documentation)
 
-- Account registration, cookie sessions, logout, and project ownership.
-- Projects, dashboard, multiple-file upload with per-file status/retry, incidents, and report history.
-- Logs and documents retain their original line references, sections, and stack traces.
-- Reports distinguish `SUFFICIENT`, `PARTIAL`, and `INSUFFICIENT` evidence.
-- Project deletion removes vectors, files, and records through retryable cleanup.
-- Fictional ShopFlow logs and runbooks are included for trying the complete workflow.
+![RootTrace project overview showing seven ready sources, a payment incident, and its saved investigation](docs/screenshots/dashboard.png)
 
-## Stack
+_The project overview keeps uploaded files, incidents, and saved investigations together. All screenshots use fictional ShopFlow data._
 
-| Layer                   | Implementation                                          |
-| ----------------------- | ------------------------------------------------------- |
-| Browser                 | React, Vite, JavaScript, React Router, Axios, plain CSS |
-| Business API            | Express, Mongoose, Zod, bcrypt, JWT cookies             |
-| Asynchronous processing | Separate BullMQ worker and Redis TCP/TLS                |
-| Analysis                | Python 3.11, FastAPI, Pydantic, Gemini adapters         |
-| Evidence index          | Qdrant, 768-dimensional cosine embeddings               |
-| Metadata                | MongoDB                                                 |
+## What RootTrace helps you do
 
-The browser calls Express. The worker streams uploaded file bytes to FastAPI. FastAPI handles parsing, embeddings, retrieval, and report generation. LangChain is used only for controlled prompt formatting.
+- **Find relevant evidence.** Search across uploaded logs and documents for information related to an incident.
+- **Understand a suspected cause.** Read an explanation supported by specific source references.
+- **Check the original lines.** Select a citation to open its file, line numbers, and nearby context.
+- **Decide what to check next.** Review suggested investigation steps and whether the available evidence is sufficient.
+- **Keep investigations organized.** Separate projects, track file processing, and revisit saved reports.
 
-## Local setup
+For example, if checkout requests return `502` and payment logs contain connection timeouts, RootTrace can connect those records, suggest a payment dependency problem, and point to the supporting lines. The developer still confirms the cause and makes the fix.
 
-Install Node.js 24, Python 3.11, and Git. Run commands from the repository root.
+## What users upload
+
+| Input                | Example                                                                       | Required?                                  |
+| -------------------- | ----------------------------------------------------------------------------- | ------------------------------------------ |
+| Application logs     | Errors, failed requests, timeouts, stack traces                               | Relevant logs are the usual starting point |
+| Documentation        | Service descriptions, API notes, known problems, troubleshooting instructions | Optional; adds context                     |
+| Incident description | “Customers cannot complete payments; checkout returns 502.”                   | Yes, entered in the incident form          |
+
+Supported files: **`.log`, `.txt`, `.json`, and `.md`**, with a configurable **20 MB limit per file**. Select multiple files together; each has its own upload and processing status. Files must contain valid text.
+
+Users obtain logs from their application, server, or hosting platform and upload them manually. Uploading the entire codebase is not required.
+
+## Investigation preview
+
+![Saved ShopFlow investigation with suspected causes, next checks, and highlighted payment log citations](docs/screenshots/report-desktop.png)
+
+_Select a source citation to inspect the original lines beside the report. The layout stacks on smaller screens: [mobile preview](docs/screenshots/report-mobile.png)._
+
+Reports distinguish three evidence levels:
+
+| Result         | Meaning                                                                                      |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| `SUFFICIENT`   | The uploaded evidence supports an explanation; the developer should still confirm the cause. |
+| `PARTIAL`      | Some useful evidence exists, but more information or checks are needed.                      |
+| `INSUFFICIENT` | The available evidence does not support a cause.                                             |
+
+## Quick start
+
+### 1. Install dependencies
+
+Prerequisites: **Node.js 24**, **Python 3.11**, **Git**, and credentials for MongoDB, Redis, Qdrant, and Gemini. No Docker or design plugins are required.
+
+From the repository root, on Windows PowerShell:
 
 ```powershell
 npm ci
@@ -37,51 +61,112 @@ ai-service/.venv/Scripts/python.exe -m pip install -r ai-service/requirements-lo
 npm run env:setup
 ```
 
-On macOS/Linux, use `python3.11 -m venv ai-service/.venv` and `ai-service/.venv/bin/python` in place of the Windows Python path.
+<details>
+<summary>macOS / Linux installation</summary>
 
-Edit the ignored root `.env` privately. Configure:
+```bash
+npm ci
+python3.11 -m venv ai-service/.venv
+ai-service/.venv/bin/python -m pip install -r ai-service/requirements-lock.txt
+npm run env:setup
+```
 
-| Variable                           | Required value                                         |
-| ---------------------------------- | ------------------------------------------------------ |
-| `MONGODB_URI`                      | Atlas connection string with a dedicated database name |
-| `REDIS_URL`                        | Upstash **TCP** URL starting with `rediss://`          |
-| `QDRANT_URL` / `QDRANT_API_KEY`    | Qdrant Cloud endpoint and key                          |
-| `GEMINI_API_KEY`                   | Provider key for embeddings and investigation          |
-| `JWT_SECRET` / `AI_SERVICE_SECRET` | Separate secrets generated by `env:setup`              |
+Use `ai-service/.venv/bin/python` for the Python commands below.
 
-Environment templates contain placeholders only. `env:setup` generates empty local secrets and preserves populated values. Credentials belong in `.env` or a deployment secret manager. Never put provider keys in `VITE_*` variables.
+</details>
 
-Default models are `gemini-3.5-flash-lite` and `gemini-embedding-2`, with 768 embedding dimensions. Model/provider selection is configured in `.env`. Changing the embedding model or dimensions requires a separate Qdrant collection and reindexing.
+### 2. Configure private service credentials
+
+`env:setup` prepares the ignored root `.env` file, generates missing session/internal secrets, and preserves existing values. Fill in these settings privately:
+
+| Variable                           | What to provide                                                                          |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `MONGODB_URI`                      | MongoDB Atlas connection string with a dedicated database name                           |
+| `REDIS_URL`                        | Redis **TCP over TLS** URL beginning with `rediss://`; an Upstash REST URL will not work |
+| `QDRANT_URL` / `QDRANT_API_KEY`    | Qdrant Cloud endpoint and key                                                            |
+| `GEMINI_API_KEY`                   | Gemini access for embeddings and report generation                                       |
+| `JWT_SECRET` / `AI_SERVICE_SECRET` | Separate secrets generated by `env:setup`                                                |
+
+See [`.env.example`](.env.example) for all settings. Keep Redis eviction disabled. Never commit `.env`, upload credentials as evidence, or put provider secrets in `VITE_*` variables.
+
+### 3. Start the application
 
 ```powershell
 npm run doctor
 npm run start:local
 ```
 
-Windows also supports `./scripts/start.ps1`. Open **http://localhost:5173**, register an account, and create a project. Press Ctrl+C in the launcher terminal to drain work and stop the processes. Readiness is checked with `npm run doctor -- --live`.
+Open **http://localhost:5173**, register using your own name, email, and password, then sign in. There is no shared default login. Passwords must be 10–72 characters and no more than 72 UTF-8 bytes.
 
-For separate development terminals:
+The launcher starts four processes:
 
-```powershell
-npm run dev:client
-npm run dev:server
-npm run dev:worker
-ai-service/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir ai-service --host 127.0.0.1 --port 8000 --reload --reload-dir ai-service/app
+| Process                  | Local address / role                   |
+| ------------------------ | -------------------------------------- |
+| React frontend           | `http://localhost:5173`                |
+| Express API              | `http://127.0.0.1:5000`                |
+| BullMQ worker            | Background file processing and cleanup |
+| FastAPI analysis service | `http://127.0.0.1:8000`                |
+
+Keep the launcher running while using the app. Press **Ctrl+C** in its terminal to stop. Run `npm run doctor -- --live` to check readiness. Use the hostname configured in `CLIENT_URL` consistently when opening the frontend.
+
+## Try it with ShopFlow
+
+The repository includes a fictional shopping application with four service logs and three documents.
+
+1. Create a project named **ShopFlow**.
+2. Open **Sources → Upload source**. Select the four files in [`demo-data/logs`](demo-data/logs), then upload the three files in [`demo-data/docs`](demo-data/docs) in another batch. Keep automatic source type detection.
+3. Click **Upload and process** for each selection. Wait until all seven files show **`READY`**. If a file fails, review its message and retry from Sources.
+4. Choose **New incident** and enter:
+
+   | Field                | Example                                                                                                                                                |
+   | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+   | Title                | Payment gateway timeout                                                                                                                                |
+   | Symptoms and context | Checkout returns 502 while payment-service connections to the sandbox gateway remain pending and time out after 5000ms. Trace pay-301 shows ETIMEDOUT. |
+   | Affected service     | `payment-service`                                                                                                                                      |
+   | Time window          | Leave blank for this demo                                                                                                                              |
+
+5. Select **Investigate incident**.
+6. Read the suspected cause and suggested checks. Select a `payment-service.log` citation to inspect its original lines.
+
+The report is saved under the incident and linked from the project overview. Report wording can vary; provider errors or quota limits are shown as failures rather than replaced with sample results.
+
+## How it works
+
+```mermaid
+flowchart LR
+    Browser[React dashboard] --> API[Express API]
+    API --> Mongo[(MongoDB: accounts and records)]
+    API --> Uploads[Private upload storage]
+    API --> Queue[(Redis / BullMQ)]
+    Queue --> Worker[Background worker]
+    Uploads --> Worker
+    Worker -->|File bytes| Analysis[FastAPI analysis]
+    API -->|Investigation request| Analysis
+    Analysis --> Vectors[(Qdrant: evidence index)]
+    Analysis --> Gemini[Gemini: embeddings and reports]
 ```
 
-Each command runs in its own terminal. The API uses port 5000; analysis uses 8000; Vite uses 5173. Use the configured `CLIENT_URL` exactly, including the hostname.
+Uploads return `202 Accepted` after queueing; the worker processes files separately. Parsing keeps original line references, document sections, and stack traces. Investigation searches the project's ready sources, validates the generated report and its citation references, and saves the result.
 
-## ShopFlow walkthrough
+| Layer            | Technology                                              |
+| ---------------- | ------------------------------------------------------- |
+| Frontend         | React, Vite, JavaScript, React Router, Axios, plain CSS |
+| API and accounts | Express, Mongoose, Zod, bcrypt, HttpOnly JWT cookies    |
+| Background jobs  | BullMQ, Redis TCP/TLS                                   |
+| Analysis         | Python 3.11, FastAPI, Pydantic, Gemini adapters         |
+| Storage          | MongoDB metadata, private files, Qdrant vectors         |
 
-1. Create a project called ShopFlow.
-2. Open Sources → Upload source and select multiple files with Ctrl/Cmd-click or Shift-click. You can select files from `demo-data/logs` together, then select the files from `demo-data/docs` in another batch.
-3. Keep automatic type detection or adjust each selected file's type: the four `.log` files are application logs, and the three `.md` files are documentation. Click Upload and process once per selection. Each file uploads sequentially through the existing validated API and processes independently. If some are rejected, retry only those files; saved or unconfirmed uploads link to Sources to avoid accidental duplicates.
-4. Wait for all seven sources to reach `READY`.
-5. Create an incident such as “Checkout returns 502 while payment gateway connections time out after 5000ms.”
-6. Investigate, reopen the saved report, and select a citation.
-7. Review the possible cause and suggested checks. Reports stay available under the incident and on the project dashboard.
+Default models are `gemini-3.5-flash-lite` and `gemini-embedding-2`, with 768-dimensional embeddings. Model settings are configurable. Changing embedding models or dimensions requires a separate collection and reindexing. LangChain is used for prompt formatting.
 
-## Checks
+## Current scope
+
+RootTrace investigates **existing incidents using uploaded evidence**. It does not automatically monitor applications, collect logs, scan a connected codebase, predict future failures, or apply fixes. A suspected cause is an investigation result, not a guarantee.
+
+Project ownership is enforced on API operations, and retrieval is limited to the selected project's ready sources. Project deletion uses retryable cleanup for vectors, files, and records. Passwords are hashed, session cookies are HttpOnly, and production cookies require HTTPS.
+
+The current deployment layout uses shared API/worker upload storage and **one FastAPI process**. Managed services and provider quotas are required; idle workers also consume Redis commands. No public deployment is included. See the [deployment guide](docs/deployment.md) before hosting.
+
+## Development and checks
 
 ```powershell
 npm run lint
@@ -93,31 +178,48 @@ npm audit
 npm run scan:secrets
 ```
 
-Build before running tests so the production static-serving check is exercised. Install [Gitleaks](https://github.com/gitleaks/gitleaks/releases) to run the secret scanner; on Windows it also recognizes an ignored `.tools/gitleaks.exe`.
+Build before running tests so the production static-serving check is exercised. Install [Gitleaks](https://github.com/gitleaks/gitleaks/releases) for secret scanning; Windows also recognizes an ignored `.tools/gitleaks.exe`.
 
-Two optional live checks require configured managed services and all four processes:
+<details>
+<summary>Run processes separately</summary>
+
+Run each command in its own terminal:
+
+```powershell
+npm run dev:client
+npm run dev:server
+npm run dev:worker
+ai-service/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir ai-service --host 127.0.0.1 --port 8000 --reload --reload-dir ai-service/app
+```
+
+Windows also supports `./scripts/start.ps1` as an alternative to the combined launcher.
+
+</details>
+
+<details>
+<summary>Live browser and queue checks</summary>
+
+These checks require configured services and the running local application:
 
 ```powershell
 npm run test:queue -w server
 npm run test:browser -- --cleanup
 ```
 
-The browser check registers fictional accounts, uploads sample files through the interface, investigates, opens original citations, checks ownership and responsive layouts, and deletes its project. Screenshots and temporary session details stay under ignored `.local/browser`. Windows uses installed Edge. On Linux/macOS, run `npx playwright install chromium` first.
+The browser check creates fictional accounts, uploads the seven demo files, investigates an incident, opens a saved report and citation, checks project ownership and mobile navigation, and deletes its test project. Artifacts stay under ignored `.local/browser`.
 
-CI runs builds, isolated Node/React/Python tests, dependency checks, and a full-history secret scan without production credentials.
+Windows uses installed Edge. On macOS/Linux, run `npx playwright install chromium` first. Live checks consume service/provider quota.
 
-## Operations
+</details>
 
-Keep Redis eviction disabled. A BullMQ worker consumes Redis commands while idle; its 30-second blocking wait reduces polling but does not eliminate command use. Stop the local launcher when finished, and monitor Upstash/provider quotas. Quota failures produce retries or explicit errors; the application does not switch to paid providers.
-
-The API and worker share private upload storage. FastAPI receives file bytes and does not read Node filesystem paths. The current cleanup cancellation barrier requires **one FastAPI process**. See [deployment preparation](docs/deployment.md) before hosting.
+GitHub Actions runs the client build, isolated Node/React/Python tests, dependency checks, and a full-history secret scan without production credentials. See the [verification record](docs/verification.md) for coverage and limitations.
 
 ## Documentation
 
-- [Architecture and interfaces](docs/architecture.md)
-- [Retrieval, evidence, and report validation](docs/rag-design.md)
-- [Verified behavior and limits](docs/verification.md)
-- [Deployment preparation](docs/deployment.md)
-- [Interview notes](docs/interview-notes.md)
-
-Managed-service setup references: [Atlas free clusters](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/), [Upstash with BullMQ](https://upstash.com/docs/redis/integrations/bullmq), [Qdrant Cloud](https://qdrant.tech/pricing/), [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing), and [embedding documentation](https://ai.google.dev/gemini-api/docs/embeddings).
+| Guide                                       | Contents                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------ |
+| [Architecture](docs/architecture.md)        | Services, data models, REST interfaces, and job lifecycle                |
+| [Retrieval and reports](docs/rag-design.md) | Chunking, project isolation, evidence retrieval, and citation validation |
+| [Verification](docs/verification.md)        | Automated coverage, live checks, and practical limits                    |
+| [Deployment](docs/deployment.md)            | Native hosting, private storage, configuration, and operations           |
+| [Interview notes](docs/interview-notes.md)  | Implementation decisions and tradeoffs                                   |
