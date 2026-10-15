@@ -82,6 +82,8 @@ Mutating browser requests must have the configured origin. Production cookies ar
 
 ## Ingestion and deletion
 
+The upload interface accepts multiple files, detects their initial source type by extension, and allows per-file overrides. It sends one file per request in sequence through the existing authenticated upload endpoint. Rejected files can be retried without resending accepted files; saved-but-unqueued and ambiguous network outcomes direct the user to Sources before resubmission. This keeps each request within the configured per-file memory and size limits.
+
 Upload validation enforces extension, actual UTF-8 text, no NUL bytes, and the configured size limit (20 MB by default). UUID storage filenames prevent user-controlled filesystem paths. Files stay outside public directories.
 
 Source states are UPLOADED → QUEUED → PROCESSING → READY, with bounded retries leading to FAILED. Worker concurrency defaults to one, ingestion attempts to three, and exponential backoff to five seconds initially. Queue retention is bounded to 100 completed and 200 failed jobs. Restart reconciliation requeues missing work from MongoDB.

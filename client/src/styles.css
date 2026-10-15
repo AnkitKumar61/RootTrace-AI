@@ -444,6 +444,75 @@ td small {
   font-size: 12px;
   background: white;
 }
+.upload-file-list {
+  padding: 0;
+  margin: 0 0 18px;
+  list-style: none;
+}
+.upload-file-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 155px 88px 32px;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #e3eaee;
+}
+.upload-file-name {
+  min-width: 0;
+}
+.upload-file-name strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.upload-file-name small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+}
+.upload-file-list select {
+  font-size: 12px;
+  padding: 8px;
+}
+.upload-file-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #526c77;
+}
+.upload-file-queued {
+  color: #197550;
+}
+.upload-file-failed,
+.upload-file-invalid,
+.upload-file-error {
+  color: #a3293b;
+}
+.upload-file-error {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.upload-summary {
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .upload-file-list li {
+    grid-template-columns: minmax(0, 1fr) 32px;
+  }
+  .upload-file-list select {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .upload-file-list .icon-button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .upload-file-status {
+    grid-column: 1 / -1;
+  }
+}
 .sr-only {
   position: absolute;
   width: 1px;

@@ -15,6 +15,8 @@ Redis memory information reported `noeviction` for the configured database.
 
 The browser check exercised register → login → project → seven uploads acknowledged with 202 → READY → incident → investigation → persisted report after reload → original citation lines → evaluation → ownership checks → project deletion and UI removal.
 
+Multiple-file selection was verified on 2026-10-15: all seven demo files were selected together, classified as logs/documents, and submitted with one button. Each received 202 and reached READY. The updated full browser workflow, including reports, evaluation, responsive navigation, and deletion, passed. Frontend tests additionally cover sequential requests, per-file rejection and retry, invalid/oversized files, duplicate-submit prevention, unconfirmed upload responses, and leaving the upload page. All 19 API regression tests passed without changing the upload endpoint.
+
 Desktop and 390-pixel mobile layouts were checked for horizontal overflow, report/evidence stacking, and navigation. Runtime browser errors were checked. Screenshots in this repository contain fictional ShopFlow data only; temporary accounts and sessions stay in ignored local files.
 
 Separate managed-Qdrant checks deliberately supplied source IDs from two different projects. Each search returned only its requested project. The upload smoke test returned in approximately half a second while processing continued in the worker. Live embeddings produced separate finite 768-dimensional vectors. The first live report was persisted with validated source citations.

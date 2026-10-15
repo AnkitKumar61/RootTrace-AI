@@ -7,7 +7,7 @@ An evidence-backed backend incident investigation dashboard. Upload logs and run
 ## Application
 
 - Account registration, cookie sessions, logout, and project ownership.
-- Projects, dashboard, source upload/status/retry, incidents, report history, and evaluation.
+- Projects, dashboard, multiple-file upload with per-file status/retry, incidents, report history, and evaluation.
 - Logs and documents retain their original line references, sections, and stack traces.
 - Reports distinguish `SUFFICIENT`, `PARTIAL`, and `INSUFFICIENT` evidence.
 - Project deletion removes vectors, files, and records through retryable cleanup.
@@ -74,8 +74,8 @@ Each command runs in its own terminal. The API uses port 5000; analysis uses 800
 ## ShopFlow walkthrough
 
 1. Create a project called ShopFlow.
-2. Upload the four files from `demo-data/logs` as application logs.
-3. Upload the three files from `demo-data/docs` as documentation.
+2. Open Sources → Upload source and select multiple files with Ctrl/Cmd-click or Shift-click. You can select files from `demo-data/logs` together, then select the files from `demo-data/docs` in another batch.
+3. Keep automatic type detection or adjust each selected file's type: the four `.log` files are application logs, and the three `.md` files are documentation. Click Upload and process once per selection. Each file uploads sequentially through the existing validated API and processes independently. If some are rejected, retry only those files; saved or unconfirmed uploads link to Sources to avoid accidental duplicates.
 4. Wait for all seven sources to reach `READY`.
 5. Create an incident such as “Checkout returns 502 while payment gateway connections time out after 5000ms.”
 6. Investigate, reopen the saved report, and select a citation.

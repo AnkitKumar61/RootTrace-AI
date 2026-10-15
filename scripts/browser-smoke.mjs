@@ -62,25 +62,59 @@ try {
     path.join(artifacts, "session.json"),
     JSON.stringify({ email, password, projectId }),
   );
-  for (const [folder, sourceType] of [
-    ["logs", "log"],
-    ["docs", "document"],
-  ])
-    for (const name of await fs.readdir(`demo-data/${folder}`)) {
-      await page.goto(`${projectURL}/sources/upload`);
-      await page.getByLabel("Source type").selectOption(sourceType);
-      await page
-        .getByLabel("Source file")
-        .setInputFiles(path.resolve("demo-data", folder, name));
-      const acknowledged = page.waitForResponse(
-        (r) =>
-          r.url().endsWith(`/api/projects/${projectId}/sources`) &&
-          r.request().method() === "POST",
-      );
-      await page.getByRole("button", { name: "Upload and process" }).click();
-      assert.equal((await acknowledged).status(), 202);
-      await page.waitForURL(`**/projects/${projectId}/sources`);
-    }
+  const selectedFiles = [];
+  for (const folder of ["logs", "docs"])
+    for (const name of await fs.readdir(`demo-data/${folder}`))
+      selectedFiles.push(path.resolve("demo-data", folder, name));
+  await page.goto(`${projectURL}/sources/upload`);
+  await page
+    .getByLabel("Source file", { exact: true })
+    .setInputFiles(selectedFiles);
+  await page.getByText("7 files selected", { exact: true }).waitFor();
+  assert.equal(
+    await page
+      .getByLabel("Source type for payment-service.log", { exact: true })
+      .inputValue(),
+    "log",
+  );
+  assert.equal(
+    await page
+      .getByLabel("Source type for runbooks.md", { exact: true })
+      .inputValue(),
+    "document",
+  );
+  await page.screenshot({
+    path: path.join(artifacts, "upload-desktop.png"),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+    false,
+  );
+  await page.screenshot({
+    path: path.join(artifacts, "upload-mobile.png"),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const acknowledged = [];
+  const captureUpload = (response) => {
+    if (
+      response.url().endsWith(`/api/projects/${projectId}/sources`) &&
+      response.request().method() === "POST"
+    )
+      acknowledged.push(response.status());
+  };
+  page.on("response", captureUpload);
+  await page.getByRole("button", { name: "Upload and process" }).click();
+  await page.waitForURL(`**/projects/${projectId}/sources`, {
+    timeout: 120000,
+  });
+  page.off("response", captureUpload);
+  assert.equal(acknowledged.length, selectedFiles.length);
+  assert.ok(acknowledged.every((status) => status === 202));
   await page.waitForFunction(
     () =>
       document.querySelectorAll("tbody tr").length === 7 &&
@@ -94,7 +128,9 @@ try {
     path: path.join(artifacts, "sources.png"),
     fullPage: true,
   });
-  console.log("Seven uploads acknowledged asynchronously and reached READY.");
+  console.log(
+    "Seven files selected together, acknowledged asynchronously and reached READY.",
+  );
   await page.goto(`${projectURL}/incidents/new`);
   await page.getByLabel("Incident title").fill("Payment gateway timeout");
   await page
