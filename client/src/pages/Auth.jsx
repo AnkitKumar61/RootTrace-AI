@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { GitBranch, CheckCircle2 } from "lucide-react";
+import { GitBranch } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api, errorMessage } from "../lib/api.js";
 import { Field, Notice, Submit } from "../components/UI.jsx";
@@ -44,17 +44,6 @@ export default function Auth({ register = false }) {
             Review the evidence.
           </h1>
           <p>Analyze logs and documents to investigate application failures.</p>
-          <ul>
-            <li>
-              <CheckCircle2 /> Sources by project
-            </li>
-            <li>
-              <CheckCircle2 /> Original file references
-            </li>
-            <li>
-              <CheckCircle2 /> Saved reports
-            </li>
-          </ul>
         </div>
         <small>Review the evidence before confirming a cause.</small>
       </section>

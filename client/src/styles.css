@@ -924,23 +924,6 @@ select:focus {
 .auth-story .eyebrow {
   color: #63ccc8;
 }
-.auth-story ul {
-  padding: 20px 0 0;
-  list-style: none;
-  display: grid;
-  gap: 16px;
-  font-size: 14px;
-  color: #c9dce4;
-}
-.auth-story li {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.auth-story li svg {
-  width: 17px;
-  color: #63ccc8;
-}
 .auth-form {
   display: flex;
   align-items: center;
@@ -1032,7 +1015,6 @@ select:focus {
   .auth-story h1 {
     font-size: 32px;
   }
-  .auth-story ul,
   .auth-story small {
     display: none;
   }
