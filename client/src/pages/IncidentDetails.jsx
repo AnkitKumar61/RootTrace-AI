@@ -70,13 +70,13 @@ export default function IncidentDetails() {
         <div className="actions">
           <Badge value={incident.status} />
           <span className="mono muted">
-            {incident.affectedService || "Service unspecified"}
+            {incident.affectedService || "Not specified"}
           </span>
         </div>
         <p className="incident-description">{incident.description}</p>
         {incident.startTime && (
           <small>
-            Incident window: {new Date(incident.startTime).toLocaleString()}
+            Time window: {new Date(incident.startTime).toLocaleString()}
             {incident.endTime &&
               ` — ${new Date(incident.endTime).toLocaleString()}`}
           </small>
@@ -84,10 +84,7 @@ export default function IncidentDetails() {
       </div>
       <div className="panel">
         <h2>Investigation</h2>
-        <p>
-          Retrieve ready project sources and produce an evidence-backed report.
-          Reports remain available here for comparison.
-        </p>
+        <p>Analyze this incident using ready sources.</p>
         <div className="actions">
           <button
             className="button"
@@ -106,9 +103,7 @@ export default function IncidentDetails() {
             View sources
           </Link>
         </div>
-        {busy && (
-          <Loading label="Retrieving evidence and validating the report…" />
-        )}
+        {busy && <Loading label="Analyzing sources…" />}
       </div>
       <section className="panel">
         <h2>Investigation history</h2>
@@ -134,14 +129,14 @@ export default function IncidentDetails() {
                   </Link>
                 ) : (
                   <span className="inline-error">
-                    {r.failureMessage || "Investigation in progress…"}
+                    {r.failureMessage || "Investigating…"}
                   </span>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p>No investigations yet.</p>
+          <p>No investigations.</p>
         )}
       </section>
     </>

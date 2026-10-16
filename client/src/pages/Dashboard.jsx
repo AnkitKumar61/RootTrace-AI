@@ -64,14 +64,12 @@ export default function Dashboard() {
       <PageHeader
         eyebrow="PROJECT OVERVIEW"
         title={project.name}
-        description={
-          project.description || "Your evidence and incident workspace."
-        }
+        description={project.description || "Sources, incidents, and reports."}
         action={
           <div className="actions">
             <Link className="button secondary" to={`${base}/sources/upload`}>
               <Plus size={16} />
-              Add source
+              Upload files
             </Link>
             <Link className="button" to={`${base}/incidents/new`}>
               <Plus size={16} />
@@ -83,7 +81,7 @@ export default function Dashboard() {
       <Notice>{failure || error}</Notice>
       {editing && (
         <section className="panel form-panel">
-          <h2>Project settings</h2>
+          <h2>Project details</h2>
           <form onSubmit={save}>
             <Field label="Project name">
               <input
@@ -147,8 +145,8 @@ export default function Dashboard() {
             </div>
             {data.sources.FAILED > 0 && (
               <div className="assessment-note">
-                {data.sources.FAILED} source(s) failed processing.{" "}
-                <Link to={`${base}/sources`}>Review failures and retry</Link>.
+                Failed files: {data.sources.FAILED}.{" "}
+                <Link to={`${base}/sources`}>Review and retry</Link>.
               </div>
             )}
             <div className="dashboard-grid">
@@ -166,9 +164,7 @@ export default function Dashboard() {
                       <Link to={`${base}/incidents/${i._id}`} key={i._id}>
                         <div>
                           <strong>{i.title}</strong>
-                          <small>
-                            {i.affectedService || "Service unspecified"}
-                          </small>
+                          <small>{i.affectedService || "Not specified"}</small>
                         </div>
                         <Badge value={i.status} />
                       </Link>
@@ -176,14 +172,14 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <Empty
-                    title="No incidents yet"
-                    description="Describe a failure to investigate it against your project sources."
+                    title="No incidents"
+                    description="Create an incident to start an investigation."
                     action={
                       <Link
                         className="button secondary"
                         to={`${base}/incidents/new`}
                       >
-                        Create incident
+                        New incident
                       </Link>
                     }
                   />
@@ -213,10 +209,7 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p>
-                    Saved reports will appear here after your first
-                    investigation.
-                  </p>
+                  <p>No saved reports.</p>
                 )}
               </section>
             </div>

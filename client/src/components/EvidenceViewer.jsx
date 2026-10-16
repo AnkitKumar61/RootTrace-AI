@@ -28,7 +28,7 @@ export default function EvidenceViewer({ evidence, projectId }) {
             setError(
               e.response
                 ? errorMessage(e)
-                : "The original file could not be loaded. Check that the local app is running, then retry.",
+                : "Cannot load source lines. Check your connection and retry.",
             );
         });
     return () => {
@@ -39,20 +39,20 @@ export default function EvidenceViewer({ evidence, projectId }) {
   if (!evidence)
     return (
       <div className="panel evidence-viewer">
-        <h2>Source evidence</h2>
-        <p>Select a citation to inspect its original lines.</p>
+        <h2>Source lines</h2>
+        <p>Select a citation to view the original lines.</p>
       </div>
     );
   return (
-    <section className="panel evidence-viewer" aria-label="Source evidence">
-      <div className="eyebrow">SOURCE EVIDENCE</div>
+    <section className="panel evidence-viewer" aria-label="Source lines">
+      <div className="eyebrow">SOURCE LINES</div>
       <h2 className="break-word">{evidence.fileName}</h2>
       <p className="muted">
         Lines {evidence.lineStart}–{evidence.lineEnd}
         {evidence.section && ` · ${evidence.section}`}
       </p>
       <Notice>{error}</Notice>
-      {!data && !error && <Loading label="Loading original lines…" />}
+      {!data && !error && <Loading label="Loading source lines…" />}
       {data && (
         <div
           className="source-lines"
@@ -81,9 +81,9 @@ export default function EvidenceViewer({ evidence, projectId }) {
             className="button secondary small"
             onClick={() => setAttempt((value) => value + 1)}
           >
-            Retry loading original lines
+            Retry source lines
           </button>
-          <p className="muted help-note">Saved evidence excerpt</p>
+          <p className="muted help-note">Saved excerpt</p>
           <pre className="excerpt">{evidence.text}</pre>
         </>
       )}

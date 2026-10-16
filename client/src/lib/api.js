@@ -5,5 +5,4 @@ export const api = axios.create({
   timeout: 130000,
 });
 export const errorMessage = (error) =>
-  error.response?.data?.error?.message ||
-  "Could not connect. Please try again.";
+  error.response?.data?.error?.message || "Connection failed. Try again.";

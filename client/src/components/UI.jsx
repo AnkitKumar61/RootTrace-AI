@@ -6,7 +6,7 @@ export function Notice({ children }) {
     </div>
   ) : null;
 }
-export function Loading({ label = "Loading workspace…" }) {
+export function Loading({ label = "Loading…" }) {
   return (
     <div className="loading" role="status">
       <LoaderCircle className="spin" size={20} />
@@ -51,7 +51,7 @@ export function Submit({ busy, children }) {
       ) : (
         <ArrowRight size={16} />
       )}{" "}
-      {busy ? "Please wait…" : children}
+      {busy ? "Submitting…" : children}
     </button>
   );
 }

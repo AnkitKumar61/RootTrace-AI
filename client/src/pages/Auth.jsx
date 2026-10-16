@@ -37,42 +37,39 @@ export default function Auth({ register = false }) {
           RootTrace
         </Link>
         <div>
-          <div className="eyebrow">FROM INCIDENT TO INSIGHT</div>
+          <div className="eyebrow">INCIDENT ANALYSIS</div>
           <h1>
-            Find the cause.
+            Investigate incidents.
             <br />
-            Follow the evidence.
+            Review the evidence.
           </h1>
-          <p>
-            A focused workspace for investigating backend failures with your
-            logs, runbooks, and engineering knowledge.
-          </p>
+          <p>Analyze logs and documents to investigate application failures.</p>
           <ul>
             <li>
-              <CheckCircle2 /> Project-isolated evidence
+              <CheckCircle2 /> Sources by project
             </li>
             <li>
-              <CheckCircle2 /> Traceable source citations
+              <CheckCircle2 /> Original file references
             </li>
             <li>
-              <CheckCircle2 /> Clear, structured reports
+              <CheckCircle2 /> Saved reports
             </li>
           </ul>
         </div>
-        <small>Built for developers who need answers they can verify.</small>
+        <small>Review the evidence before confirming a cause.</small>
       </section>
       <main className="auth-form">
         <div className="auth-form-inner">
-          <div className="eyebrow">YOUR ENGINEERING WORKSPACE</div>
-          <h1>{register ? "Create your account" : "Welcome back"}</h1>
+          <div className="eyebrow">ACCOUNT ACCESS</div>
+          <h1>{register ? "Create account" : "Sign in"}</h1>
           <p>
             {register
-              ? "Start investigating with evidence you control."
-              : "Sign in to continue your investigations."}
+              ? "Register to create projects."
+              : "Access your projects and reports."}
           </p>
           {location.state?.registered && (
             <div className="success" role="status">
-              Account created. You can now sign in.
+              Account created. Sign in to continue.
             </div>
           )}
           <Notice>{error}</Notice>
@@ -117,7 +114,7 @@ export default function Auth({ register = false }) {
           <p className="auth-switch">
             {register ? "Already have an account?" : "New to RootTrace?"}{" "}
             <Link to={register ? "/login" : "/register"}>
-              {register ? "Sign in" : "Create an account"}
+              {register ? "Sign in" : "Create account"}
             </Link>
           </p>
         </div>

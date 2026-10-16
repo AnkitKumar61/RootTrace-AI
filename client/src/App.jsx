@@ -53,7 +53,7 @@ export default function App() {
           element={
             <main>
               <h1>Page not found</h1>
-              <a href="/projects">Return to projects</a>
+              <a href="/projects">Back to projects</a>
             </main>
           }
         />

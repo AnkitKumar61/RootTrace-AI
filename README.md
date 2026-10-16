@@ -114,16 +114,16 @@ Keep the launcher running while using the app. Press **Ctrl+C** in its terminal 
 The repository includes a fictional shopping application with four service logs and three documents.
 
 1. Create a project named **ShopFlow**.
-2. Open **Sources → Upload source**. Select the four files in [`demo-data/logs`](demo-data/logs), then upload the three files in [`demo-data/docs`](demo-data/docs) in another batch. Keep automatic source type detection.
-3. Click **Upload and process** for each selection. Wait until all seven files show **`READY`**. If a file fails, review its message and retry from Sources.
+2. Open **Sources → Upload files**. Select the four files in [`demo-data/logs`](demo-data/logs), then upload the three files in [`demo-data/docs`](demo-data/docs) in another batch. Keep automatic source type detection.
+3. Click **Upload files** for each selection. Wait until all seven files show **`READY`**. If a file fails, review its message and retry from Sources.
 4. Choose **New incident** and enter:
 
-   | Field                | Example                                                                                                                                                |
-   | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-   | Title                | Payment gateway timeout                                                                                                                                |
-   | Symptoms and context | Checkout returns 502 while payment-service connections to the sandbox gateway remain pending and time out after 5000ms. Trace pay-301 shows ETIMEDOUT. |
-   | Affected service     | `payment-service`                                                                                                                                      |
-   | Time window          | Leave blank for this demo                                                                                                                              |
+   | Field               | Example                                                                                                                                                |
+   | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+   | Title               | Payment gateway timeout                                                                                                                                |
+   | Problem description | Checkout returns 502 while payment-service connections to the sandbox gateway remain pending and time out after 5000ms. Trace pay-301 shows ETIMEDOUT. |
+   | Affected service    | `payment-service`                                                                                                                                      |
+   | Time window         | Leave blank for this demo                                                                                                                              |
 
 5. Select **Investigate incident**.
 6. Read the suspected cause and suggested checks. Select a `payment-service.log` citation to inspect its original lines.

@@ -73,7 +73,7 @@ export default function Layout() {
           <div className="avatar">{user.name.slice(0, 1).toUpperCase()}</div>
           <div className="user-name">
             <strong>{user.name}</strong>
-            <span>Personal workspace</span>
+            <span>Account</span>
           </div>
           <button
             className="icon-button"
@@ -92,10 +92,10 @@ export default function Layout() {
       </aside>
       <main className="workspace">
         <div className="topbar">
-          <span>Engineering workspace</span>
+          <span>Workspace</span>
           <span className="topbar-note">
             <span className="status-dot" />
-            Evidence first
+            Incident investigation
           </span>
         </div>
         <Notice>{error}</Notice>

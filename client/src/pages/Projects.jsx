@@ -55,9 +55,9 @@ export default function Projects() {
   return (
     <>
       <PageHeader
-        eyebrow="YOUR WORKSPACE"
+        eyebrow="WORKSPACE"
         title="Projects"
-        description="Keep incidents and engineering knowledge together."
+        description="Manage project sources and incidents."
         action={
           <button className="button" onClick={() => setCreating(!creating)}>
             <Plus size={17} />
@@ -68,7 +68,7 @@ export default function Projects() {
       <Notice>{error || failure}</Notice>
       {creating && (
         <section className="panel form-panel">
-          <h2>Create a project</h2>
+          <h2>New project</h2>
           <form onSubmit={create}>
             <Field label="Project name">
               <input
@@ -82,7 +82,7 @@ export default function Projects() {
             <Field label="Description">
               <textarea
                 name="description"
-                placeholder="What does this backend do?"
+                placeholder="Project purpose or services"
                 maxLength={2000}
               />
             </Field>
@@ -112,17 +112,14 @@ export default function Projects() {
                 <Badge value={project.status} />
               </div>
               <h2>{project.name}</h2>
-              <p>
-                {project.description ||
-                  "Add logs and documentation to start investigating."}
-              </p>
+              <p>{project.description || "Logs, documents, and incidents."}</p>
               {project.cleanupError && <Notice>{project.cleanupError}</Notice>}
               <div className="project-card-bottom">
                 <small>
                   Created {new Date(project.createdAt).toLocaleDateString()}
                 </small>
                 {project.status === "DELETING" ? (
-                  <span className="muted">Cleaning up…</span>
+                  <span className="muted">Deleting…</span>
                 ) : (
                   <Link to={`/projects/${project._id}`} className="text-link">
                     Open project <ArrowUpRight size={16} />
@@ -146,12 +143,12 @@ export default function Projects() {
       ) : (
         !error && (
           <Empty
-            title="Your investigations start here"
-            description="Create a project, add your evidence, and investigate backend incidents."
+            title="No projects"
+            description="Create a project to upload files and investigate incidents."
             action={
               <button className="button" onClick={() => setCreating(true)}>
                 <Plus size={16} />
-                Create your first project
+                Create first project
               </button>
             }
           />

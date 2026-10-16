@@ -31,15 +31,15 @@ export function ReportContent({ report, projectId }) {
       <div>
         <section className="panel">
           <div className="report-status">
-            <h2>Evidence assessment</h2>
+            <h2>Evidence summary</h2>
             <Badge value={report.evidenceSufficiency} />
           </div>
           <p>{report.summary}</p>
           {report.evidenceSufficiency !== "SUFFICIENT" && (
             <div className="assessment-note">
               {report.evidenceSufficiency === "PARTIAL"
-                ? "Treat these causes as hypotheses. The next checks can confirm or rule them out."
-                : "Available evidence cannot establish a cause. Add relevant sources before drawing conclusions."}
+                ? "More evidence is needed to confirm these causes."
+                : "Not enough evidence to identify a cause. Add relevant sources."}
             </div>
           )}
           <div className="actions">
@@ -61,11 +61,11 @@ export function ReportContent({ report, projectId }) {
               </article>
             ))
           ) : (
-            <p>No cause is supported by the available evidence.</p>
+            <p>No supported cause found.</p>
           )}
         </section>
         <section className="panel">
-          <h2>Next investigation steps</h2>
+          <h2>Recommended checks</h2>
           <ol className="next-steps">
             {report.nextSteps.map((s, i) => (
               <li key={i}>{s}</li>
@@ -107,9 +107,7 @@ export default function InvestigationReport() {
       {report.status === "COMPLETED" ? (
         <ReportContent report={report} projectId={project._id} />
       ) : (
-        <Notice>
-          {report.failureMessage || "This investigation is still running."}
-        </Notice>
+        <Notice>{report.failureMessage || "Investigation in progress."}</Notice>
       )}
     </>
   );

@@ -17,7 +17,7 @@ export default function Incidents() {
       <PageHeader
         eyebrow={project.name}
         title="Incidents"
-        description="Investigate failures with the context your backend deserves."
+        description="Track incidents and investigations."
         action={
           <Link className="button" to={`${base}/new`}>
             <Plus size={17} />
@@ -54,7 +54,7 @@ export default function Incidents() {
                       <small className="truncate">{incident.description}</small>
                     </td>
                     <td className="mono">
-                      {incident.affectedService || "Unspecified"}
+                      {incident.affectedService || "Not specified"}
                     </td>
                     <td>
                       <Badge value={incident.status} />
@@ -81,12 +81,12 @@ export default function Incidents() {
       ) : (
         !error && (
           <Empty
-            title="Ready when something breaks"
-            description="Describe the symptoms, affected service, and time window. RootTrace will investigate using your indexed sources."
+            title="No incidents"
+            description="Create an incident to investigate a problem."
             action={
               <Link className="button" to={`${base}/new`}>
                 <Plus size={16} />
-                Create an incident
+                Create incident
               </Link>
             }
           />

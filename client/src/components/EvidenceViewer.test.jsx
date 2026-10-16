@@ -34,12 +34,10 @@ test("connection failure keeps the saved excerpt and allows original lines to lo
   render(<EvidenceViewer evidence={evidence} projectId="p1" />);
   expect(await screen.findByRole("alert")).toHaveProperty(
     "textContent",
-    "The original file could not be loaded. Check that the local app is running, then retry.",
+    "Cannot load source lines. Check your connection and retry.",
   );
   expect(screen.getByText("Saved payment timeout excerpt")).toBeTruthy();
-  fireEvent.click(
-    screen.getByRole("button", { name: "Retry loading original lines" }),
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Retry source lines" }));
   expect(await screen.findByText("ERROR ETIMEDOUT after 5000ms")).toBeTruthy();
   expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.queryByText("Saved payment timeout excerpt")).toBeNull();

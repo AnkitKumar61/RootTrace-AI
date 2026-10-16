@@ -32,11 +32,11 @@ export default function Sources() {
       <PageHeader
         eyebrow={project.name}
         title="Sources"
-        description="Your logs, runbooks, and documentation. Every conclusion starts here."
+        description="Uploaded logs and documents."
         action={
           <Link className="button" to={`${base}/upload`}>
             <Upload size={17} />
-            Upload source
+            Upload files
           </Link>
         }
       />
@@ -49,14 +49,12 @@ export default function Sources() {
             <table>
               <thead>
                 <tr>
-                  <th>Source</th>
+                  <th>File</th>
                   <th>Type / size</th>
-                  <th>Processing</th>
-                  <th>Chunks</th>
+                  <th>Status</th>
+                  <th>Text segments</th>
                   <th>Added</th>
-                  <th>
-                    <span className="sr-only">Actions</span>
-                  </th>
+                  <th aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
@@ -75,9 +73,7 @@ export default function Sources() {
                     </td>
                     <td>
                       <span className="cell-title">
-                        {source.sourceType === "log"
-                          ? "Application logs"
-                          : "Documentation"}
+                        {source.sourceType === "log" ? "Logs" : "Documents"}
                       </span>
                       <small>{(source.fileSize / 1024).toFixed(1)} KB</small>
                     </td>
@@ -130,19 +126,19 @@ export default function Sources() {
       ) : (
         !error && (
           <Empty
-            title="Add your engineering evidence"
-            description="Upload a log file or document. Sources are indexed in the background so you can keep working."
+            title="No sources"
+            description="Upload logs or documents to investigate incidents."
             action={
               <Link className="button" to={`${base}/upload`}>
                 <Upload size={16} />
-                Upload your first source
+                Upload files
               </Link>
             }
           />
         )
       )}
       <p className="help-note">
-        Supported formats: .log, .txt, .json, .md · Active sources update
+        Formats: .log, .txt, .json, .md. Processing status updates
         automatically.
       </p>
     </>

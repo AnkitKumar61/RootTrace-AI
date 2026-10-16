@@ -9,9 +9,9 @@ const editable = new Set(["pending", "failed", "invalid"]);
 function validationError(file, maximum) {
   if (!extensions.test(file.name))
     return "Supported files: .log, .txt, .json, .md.";
-  if (!file.size) return "Choose a non-empty text file.";
+  if (!file.size) return "File is empty. Choose a text file.";
   if (file.size > maximum * 1024 * 1024)
-    return `The file exceeds the ${maximum} MB limit.`;
+    return `File exceeds the ${maximum} MB limit.`;
   return "";
 }
 function detectedType(file) {
@@ -24,7 +24,7 @@ const labels = {
   failed: "Rejected",
   invalid: "Invalid file",
   saved: "Saved",
-  unconfirmed: "Check sources",
+  unconfirmed: "Check Sources",
 };
 export default function UploadSource() {
   const { project } = useOutletContext();
@@ -122,10 +122,10 @@ export default function UploadSource() {
           update(entry.id, {
             status: saved ? "saved" : rejected ? "failed" : "unconfirmed",
             error: saved
-              ? "Saved, but not queued. Open Sources and retry processing there."
+              ? "File saved. Retry processing from Sources."
               : rejected
                 ? errorMessage(e)
-                : "Upload could not be confirmed. Check Sources before uploading this file again.",
+                : "Upload not confirmed. Check Sources before retrying.",
           });
         }
       }
@@ -140,26 +140,26 @@ export default function UploadSource() {
     <>
       <PageHeader
         eyebrow={project.name}
-        title="Upload sources"
-        description="Select multiple logs and documents to upload in one go."
+        title="Upload files"
+        description="Select logs and documents to process."
       />
       <section className="panel form-panel">
         <Notice>{error}</Notice>
         <form onSubmit={submit}>
           <Field
-            label="Source type"
-            hint="Automatic: .log and .json are logs; .md and .txt are documents. You can adjust each file below."
+            label="File type"
+            hint="Set a default or change each file below."
           >
             <select
               name="sourceType"
-              aria-label="Source type"
+              aria-label="File type"
               value={sourceType}
               disabled={busy}
               onChange={(e) => changeType(e.target.value)}
             >
-              <option value="auto">Detect from file extension</option>
-              <option value="log">Application logs</option>
-              <option value="document">Documentation or runbook</option>
+              <option value="auto">Automatic</option>
+              <option value="log">Logs</option>
+              <option value="document">Documents</option>
             </select>
           </Field>
           <label className="upload-zone">
@@ -167,13 +167,13 @@ export default function UploadSource() {
             <strong>
               {files.length
                 ? `${files.length} file${files.length === 1 ? "" : "s"} selected`
-                : "Choose text files"}
+                : "Choose files"}
             </strong>
             <span>.log, .txt, .json, .md · Maximum {maximum} MB per file</span>
             <input
               type="file"
               name="file"
-              aria-label="Source file"
+              aria-label="Files"
               accept=".log,.txt,.json,.md"
               multiple
               ref={input}
@@ -190,15 +190,15 @@ export default function UploadSource() {
                     <small>{(entry.file.size / 1024).toFixed(1)} KB</small>
                   </div>
                   <select
-                    aria-label={`Source type for ${entry.file.name}`}
+                    aria-label={`File type for ${entry.file.name}`}
                     value={entry.sourceType}
                     disabled={busy || !editable.has(entry.status)}
                     onChange={(e) =>
                       update(entry.id, { sourceType: e.target.value })
                     }
                   >
-                    <option value="log">Application logs</option>
-                    <option value="document">Documentation</option>
+                    <option value="log">Logs</option>
+                    <option value="document">Documents</option>
                   </select>
                   <span
                     className={`upload-file-status upload-file-${entry.status}`}
@@ -230,14 +230,12 @@ export default function UploadSource() {
           )}
           {files.length > 0 && (
             <p className="upload-summary" role="status" aria-live="polite">
-              {queued} of {files.length} files queued for processing
+              {queued} of {files.length} files queued
               {busy ? " · Uploading files…" : ""}
             </p>
           )}
           <p className="help-note">
-            Files upload one after another and process independently in the
-            background. Track processing progress and retry processing failures
-            from Sources.
+            Files process automatically after upload. Manage retries in Sources.
           </p>
           <div className="actions">
             <button
@@ -250,13 +248,11 @@ export default function UploadSource() {
                 ? "Uploading…"
                 : candidates.length &&
                     candidates.every((entry) => entry.status === "failed")
-                  ? "Retry rejected files"
-                  : "Upload and process"}
+                  ? "Retry uploads"
+                  : "Upload files"}
             </button>
             {busy ? (
-              <span className="muted">
-                Keep this page open until uploads finish.
-              </span>
+              <span className="muted">Keep this page open during upload.</span>
             ) : (
               <Link
                 className="button secondary"

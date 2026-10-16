@@ -67,19 +67,17 @@ try {
     for (const name of await fs.readdir(`demo-data/${folder}`))
       selectedFiles.push(path.resolve("demo-data", folder, name));
   await page.goto(`${projectURL}/sources/upload`);
-  await page
-    .getByLabel("Source file", { exact: true })
-    .setInputFiles(selectedFiles);
+  await page.getByLabel("Files", { exact: true }).setInputFiles(selectedFiles);
   await page.getByText("7 files selected", { exact: true }).waitFor();
   assert.equal(
     await page
-      .getByLabel("Source type for payment-service.log", { exact: true })
+      .getByLabel("File type for payment-service.log", { exact: true })
       .inputValue(),
     "log",
   );
   assert.equal(
     await page
-      .getByLabel("Source type for runbooks.md", { exact: true })
+      .getByLabel("File type for runbooks.md", { exact: true })
       .inputValue(),
     "document",
   );
@@ -108,7 +106,7 @@ try {
       acknowledged.push(response.status());
   };
   page.on("response", captureUpload);
-  await page.getByRole("button", { name: "Upload and process" }).click();
+  await page.getByRole("button", { name: "Upload files" }).click();
   await page.waitForURL(`**/projects/${projectId}/sources`, {
     timeout: 120000,
   });
@@ -134,7 +132,7 @@ try {
   await page.goto(`${projectURL}/incidents/new`);
   await page.getByLabel("Incident title").fill("Payment gateway timeout");
   await page
-    .getByLabel("Symptoms and context")
+    .getByLabel("Problem description")
     .fill(
       "Checkout returns 502 while payment-service connections to the sandbox gateway remain pending and time out after 5000ms. Trace pay-301 shows ETIMEDOUT.",
     );
@@ -150,7 +148,7 @@ try {
     .getByRole("button", { name: "Investigate incident", exact: true })
     .click();
   await page.waitForURL("**/reports/*", { timeout: 150000 });
-  await page.getByRole("heading", { name: "Evidence assessment" }).waitFor();
+  await page.getByRole("heading", { name: "Evidence summary" }).waitFor();
   const reportURL = page.url();
   await page.reload();
   await page.getByRole("heading", { name: "Suspected causes" }).waitFor();

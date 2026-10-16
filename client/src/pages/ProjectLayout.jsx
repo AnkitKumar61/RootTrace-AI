@@ -26,11 +26,11 @@ export default function ProjectLayout() {
       <>
         <PageHeader
           title={data.project.name}
-          description="Project actions are disabled while files, vectors, and records are removed."
+          description="Deleting all project data. Actions are disabled."
         />
         <div className="panel">
           <h2>Deleting project</h2>
-          <Loading label="Cleanup in progress…" />
+          <Loading label="Deleting…" />
           <Notice>{data.project.cleanupError}</Notice>
           {data.project.cleanupError && (
             <button
@@ -40,7 +40,7 @@ export default function ProjectLayout() {
                 reload();
               }}
             >
-              Retry cleanup
+              Retry deletion
             </button>
           )}
           <Link className="button secondary" to="/projects">

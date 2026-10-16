@@ -41,7 +41,7 @@ function renderUpload() {
   );
 }
 function select(files) {
-  fireEvent.change(screen.getByLabelText("Source file"), { target: { files } });
+  fireEvent.change(screen.getByLabelText("Files"), { target: { files } });
 }
 function file(name, text = "ERROR timeout") {
   return new File([text], name, { type: "text/plain" });
@@ -61,17 +61,17 @@ test("uploads selected logs and documents sequentially, with one validated API r
   renderUpload();
   const files = [file("payment.log"), file("runbooks.md"), file("events.json")];
   select(files);
-  expect(screen.getByLabelText("Source file").multiple).toBe(true);
+  expect(screen.getByLabelText("Files").multiple).toBe(true);
   expect(screen.getByText("3 files selected")).toBeTruthy();
-  expect(screen.getByLabelText("Source type for runbooks.md").value).toBe(
+  expect(screen.getByLabelText("File type for runbooks.md").value).toBe(
     "document",
   );
-  fireEvent.change(screen.getByLabelText("Source type for events.json"), {
+  fireEvent.change(screen.getByLabelText("File type for events.json"), {
     target: { value: "document" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Upload and process" }));
+  fireEvent.click(screen.getByRole("button", { name: "Upload files" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-  expect(screen.getByLabelText("Source file").disabled).toBe(true);
+  expect(screen.getByLabelText("Files").disabled).toBe(true);
   fireEvent.submit(
     screen.getByRole("button", { name: "Uploading…" }).closest("form"),
   );
@@ -105,12 +105,12 @@ test("continues after a rejected file and retries only that file", async () => {
     .mockResolvedValue({ status: 202 });
   renderUpload();
   select([file("first.log"), file("second.log"), file("third.log")]);
-  fireEvent.click(screen.getByRole("button", { name: "Upload and process" }));
+  fireEvent.click(screen.getByRole("button", { name: "Upload files" }));
   const retry = await screen.findByRole("button", {
-    name: "Retry rejected files",
+    name: "Retry uploads",
   });
   expect(post).toHaveBeenCalledTimes(3);
-  expect(screen.getByText("2 of 3 files queued for processing")).toBeTruthy();
+  expect(screen.getByText("2 of 3 files queued")).toBeTruthy();
   expect(
     screen.getByText("Upload limit reached. Please retry later."),
   ).toBeTruthy();
@@ -131,11 +131,11 @@ test("rejects invalid, empty and oversized selections while uploading valid file
     file("large.log", "x".repeat(1024 * 1024 + 1)),
     file("valid.log"),
   ]);
-  expect(screen.getByText("The file exceeds the 1 MB limit.")).toBeTruthy();
-  expect(screen.getByText("Choose a non-empty text file.")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Upload and process" }));
+  expect(screen.getByText("File exceeds the 1 MB limit.")).toBeTruthy();
+  expect(screen.getByText("File is empty. Choose a text file.")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Upload files" }));
   await waitFor(() =>
-    expect(screen.getByText("1 of 4 files queued for processing")).toBeTruthy(),
+    expect(screen.getByText("1 of 4 files queued")).toBeTruthy(),
   );
   expect(post).toHaveBeenCalledTimes(1);
   expect(post.mock.calls[0][1].get("file").name).toBe("valid.log");
@@ -153,22 +153,18 @@ test("does not resend saved or unconfirmed uploads after queue errors or lost re
     .mockResolvedValue({ status: 202 });
   renderUpload();
   select([file("saved.log"), file("unknown.log"), file("good.log")]);
-  fireEvent.click(screen.getByRole("button", { name: "Upload and process" }));
+  fireEvent.click(screen.getByRole("button", { name: "Upload files" }));
   await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Upload and process" }).disabled,
-    ).toBe(true),
+    expect(screen.getByRole("button", { name: "Upload files" }).disabled).toBe(
+      true,
+    ),
   );
   expect(post).toHaveBeenCalledTimes(3);
   expect(
-    screen.getByText(
-      "Saved, but not queued. Open Sources and retry processing there.",
-    ),
+    screen.getByText("File saved. Retry processing from Sources."),
   ).toBeTruthy();
   expect(
-    screen.getByText(
-      "Upload could not be confirmed. Check Sources before uploading this file again.",
-    ),
+    screen.getByText("Upload not confirmed. Check Sources before retrying."),
   ).toBeTruthy();
   expect(
     screen.getByRole("link", { name: "View sources" }).getAttribute("href"),
@@ -185,11 +181,11 @@ test("changing the batch type updates selected files and leaving the page stops 
   );
   const view = renderUpload();
   select([file("one.txt"), file("two.md")]);
-  fireEvent.change(screen.getByLabelText("Source type"), {
+  fireEvent.change(screen.getByLabelText("File type"), {
     target: { value: "log" },
   });
-  expect(screen.getByLabelText("Source type for two.md").value).toBe("log");
-  fireEvent.click(screen.getByRole("button", { name: "Upload and process" }));
+  expect(screen.getByLabelText("File type for two.md").value).toBe("log");
+  fireEvent.click(screen.getByRole("button", { name: "Upload files" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   view.unmount();
   finish({ status: 202 });

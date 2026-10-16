@@ -30,7 +30,7 @@ export default function CreateIncident() {
       <PageHeader
         eyebrow={project.name}
         title="Create incident"
-        description="Describe what happened. Add enough context to guide evidence retrieval."
+        description="Describe the problem and observed errors."
       />
       <section className="panel form-panel">
         <Notice>{error}</Notice>
@@ -44,19 +44,16 @@ export default function CreateIncident() {
               maxLength={200}
             />
           </Field>
-          <Field label="Symptoms and context">
+          <Field label="Problem description">
             <textarea
               name="description"
-              placeholder="What failed, how users were affected, and what you have observed…"
+              placeholder="Describe the error, impact, and observed symptoms."
               required
               minLength={10}
               maxLength={6000}
             />
           </Field>
-          <Field
-            label="Affected service"
-            hint="Optional. Related services can still appear in the investigation."
-          >
+          <Field label="Affected service" hint="Optional.">
             <input
               name="affectedService"
               placeholder="checkout-service"
