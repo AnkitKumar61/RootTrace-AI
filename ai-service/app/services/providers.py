@@ -48,7 +48,17 @@ async def retry_provider(operation):
     for attempt in range(3):
         try:
             return await operation()
+        except ProviderFailure:
+            raise
         except Exception as error:
+            # Integrations may wrap the SDK error; inspect its cause without
+            # copying messages (which may contain private request content).
+            seen = set()
+            while getattr(error, "code", None) is None and error.__cause__ is not None:
+                if id(error) in seen:
+                    break
+                seen.add(id(error))
+                error = error.__cause__
             code = getattr(error, "code", None)
             if code in [400, 401, 403, 404]:
                 raise ProviderFailure(503) from None

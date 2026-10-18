@@ -1,5 +1,15 @@
 # Verification record
 
+## LangChain integration — 2026-10-18
+
+The analysis service now uses LangChain's embedding interface, project-scoped retriever, chat prompt, and structured Gemini model chain. The migration preserves the public API, parser/chunker, embedding input formats, Qdrant collection/payloads, report schema, and citation references.
+
+All 35 Python tests, 21 Node tests, and 10 React tests passed. The frontend production build, JavaScript/Python lint, Python dependency consistency check, and live readiness check passed. New coverage exercises the real LangChain Gemini model with a mocked SDK transport, including schema parsing, system/input separation, disabled tracing, a 60-second timeout, single SDK attempts, wrapped authentication/quota/service failures, and rejection of invalid reports. Retriever tests use two distinct projects in local Qdrant and preserve original evidence IDs and line references. Embedding tests verify the existing formats, bounded batches, cardinality, dimensions, and finite/nonzero normalization.
+
+The complete browser workflow passed against configured MongoDB, Redis, Qdrant Cloud, and Gemini: register/login → project → seven fictional ShopFlow uploads → READY → incident → investigation → saved report after reload → original source lines → ownership checks → desktop/mobile navigation → project deletion. The generated verification project was removed after cleanup. No user-uploaded production logs were resent during verification.
+
+## Earlier checks
+
 Verified locally on 2026-10-01 with Node.js 24, Python 3.11, and managed MongoDB, Upstash Redis TCP/TLS, Qdrant Cloud, and Gemini access.
 Redis memory information reported `noeviction` for the configured database.
 

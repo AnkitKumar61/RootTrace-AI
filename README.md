@@ -155,10 +155,10 @@ Uploads return `202 Accepted` after queueing; the worker processes files separat
 | Frontend         | React, Vite, JavaScript, React Router, Axios, plain CSS |
 | API and accounts | Express, Mongoose, Zod, bcrypt, HttpOnly JWT cookies    |
 | Background jobs  | BullMQ, Redis TCP/TLS                                   |
-| Analysis         | Python 3.11, FastAPI, Pydantic, Gemini adapters         |
+| Analysis         | Python 3.11, FastAPI, LangChain, Pydantic, Gemini       |
 | Storage          | MongoDB metadata, private files, Qdrant vectors         |
 
-Default models are `gemini-3.5-flash-lite` and `gemini-embedding-2`, with 768-dimensional embeddings. Model settings are configurable. Changing embedding models or dimensions requires a separate collection and reindexing. LangChain is used for prompt formatting.
+Default models are `gemini-3.5-flash-lite` and `gemini-embedding-2`, with 768-dimensional embeddings. LangChain provides the embedding interface, project-scoped retriever, chat prompt, and structured Gemini report chain. Existing embedding formats, vector IDs, and citation metadata are preserved. Model settings are configurable; changing embedding models or dimensions requires a separate collection and reindexing.
 
 ## Current scope
 

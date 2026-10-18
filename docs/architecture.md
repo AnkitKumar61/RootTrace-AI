@@ -10,7 +10,8 @@ flowchart LR
     Worker --> Storage
     Worker -->|streamed file bytes| Analysis[FastAPI analysis]
     API -->|authenticated internal requests| Analysis
-    Analysis --> Gemini[Gemini adapters]
+    Analysis --> Chain[LangChain retrieval and report chain]
+    Chain --> Gemini[Gemini adapters]
     Analysis --> Qdrant[(Qdrant vectors)]
 ```
 
@@ -21,6 +22,8 @@ Express owns users, projects, source status, incidents, and persisted reports. M
 The worker performs expensive ingestion outside the upload request. Queue payloads contain source/project IDs and a private file reference; uploaded bytes are not copied into Redis. API and worker must share their upload directory.
 
 FastAPI has no user-facing CRUD or access to the Node upload directory. Internal requests require a constant-time comparison of the shared service secret. Parsing, chunking, provider calls, vector operations, and output validation belong here.
+
+LangChain provides an asynchronous embedding interface, a request-scoped evidence retriever, and a chat-prompt/structured-model chain. The existing parser and Qdrant adapter preserve line references, vector IDs, mandatory project filters, and write retries. Application code validates citation references before Express independently checks and saves the report. Empty retrieval bypasses generation. Tracing is disabled for retrieval and generation; no additional service is needed.
 
 The frontend uses local component state, a small account context, and a reusable resource hook. Active work is polled every three seconds, paused while the page is hidden, and stopped at terminal states. Plain CSS provides the desktop sidebar, responsive navigation, tables, and report/evidence panels.
 

@@ -54,7 +54,9 @@ Retrieval-augmented generation means retrieving context before requesting a repo
 
 The embedding adapter verifies one vector per chunk and normalizes 768-dimensional values. Document and query inputs use separate formatting. Gemini investigation and embedding models are behind simple adapters, so changing them does not require rewriting business routes.
 
-LangChain only formats the controlled prompt with `PromptTemplate`. Explicit service code handles retrieval, provider calls, retries, and Pydantic validation. This keeps the actual role small and explainable.
+LangChain provides the `Embeddings` interface, a project-scoped `BaseRetriever` returning `Document` records, and a `ChatPromptTemplate` composed with `ChatGoogleGenerativeAI.with_structured_output(Report, method="json_schema")`. The model returns a validated Pydantic report. Application code still controls no-evidence handling, bounded retries, citation validation, and persistence.
+
+The embedding adapter preserves the existing document/query formats and dimensions so old sources remain searchable. The Qdrant adapter retains mandatory project and READY-source filters. LangChain errors are unwrapped only to read status codes and retry timing; private provider messages are not exposed. LangSmith tracing is disabled for retrieval and generation. The integration adds no agents or new infrastructure.
 
 ## Structured output and hallucination reduction
 

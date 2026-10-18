@@ -36,7 +36,7 @@ if (fs.existsSync(python)) {
     python,
     [
       "-c",
-      "import sys; import fastapi, qdrant_client, google.genai; assert sys.version_info >= (3,11)",
+      "import sys; import fastapi, qdrant_client, google.genai, langchain_google_genai; assert sys.version_info >= (3,11)",
     ],
     { stdio: "ignore" },
   );

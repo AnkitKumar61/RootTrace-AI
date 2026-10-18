@@ -1,11 +1,15 @@
+import asyncio
 import math
 
 from google.genai import types
+from langchain_core.embeddings import Embeddings
 
 from .providers import ProviderFailure, gemini_client, retry_provider
 
 
-class EmbeddingProvider:
+class EmbeddingProvider(Embeddings):
+    """LangChain adapter preserving the embedding format of existing indexes."""
+
     def __init__(self, settings, client=None):
         if settings.embedding_provider != "gemini":
             raise ProviderFailure()
@@ -17,6 +21,18 @@ class EmbeddingProvider:
 
     def query_text(self, text):
         return f"task: search result | query: {text}"
+
+    def embed_documents(self, texts, *, titles=None):
+        return asyncio.run(self.aembed_documents(texts, titles=titles))
+
+    def embed_query(self, text):
+        return asyncio.run(self.aembed_query(text))
+
+    async def aembed_documents(self, texts, *, titles=None):
+        return await self.embed_batch(texts, titles=titles)
+
+    async def aembed_query(self, text):
+        return await self.embed_text(text, query=True)
 
     async def embed_text(self, text, *, query=False, title="none"):
         return (await self.embed_batch([text], query=query, titles=[title]))[0]

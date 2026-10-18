@@ -49,7 +49,7 @@ async def ingest(
         if not chunks:
             raise HTTPException(422, "Source contains no indexable evidence")
         await pipeline.initialize()
-        vectors = await pipeline.embeddings.embed_batch(
+        vectors = await pipeline.embeddings.aembed_documents(
             [chunk.text for chunk in chunks], titles=[chunk.fileName for chunk in chunks]
         )
         if projectId in deleted_projects:

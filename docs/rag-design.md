@@ -12,9 +12,13 @@ Chunk IDs use UUIDv5 over project ID, source ID, original line range, and conten
 
 ## Embeddings and isolation
 
-The Gemini adapter explicitly sends separate Content items per chunk and verifies one finite, nonzero vector per input. Embeddings are normalized to 768 dimensions. Document input includes a title; query input uses a retrieval query format. Batches contain up to eight documents.
+The Gemini adapter implements LangChain's `Embeddings` interface. Ingestion uses `aembed_documents`, and retrieval uses `aembed_query`. The adapter explicitly sends separate Content items per chunk and verifies one finite, nonzero vector per input. Embeddings are normalized to 768 dimensions. Document input includes a title; query input uses a retrieval query format. Batches contain up to eight documents.
+
+The custom adapter preserves the existing `title: ... | text: ...` and `task: search result | query: ...` formats without introducing new task-type parameters. This keeps previously indexed sources compatible. The source parser and chunker remain responsible for original lines, sections, and deterministic IDs.
 
 Every Qdrant query requires projectId, permitted READY source IDs, and the configured embedding model. Filtering happens in Qdrant before results return. Optional service, source type, and severity filters are supported internally. Service names and the incident window normally enrich the query without removing potentially useful upstream logs or runbooks.
+
+`ProjectEvidenceRetriever` implements LangChain's `BaseRetriever`. Each investigation creates its own retriever with a copy of the authorized request scope, so concurrent projects do not share mutable filters. Results are LangChain `Document` objects carrying the original evidence ID, filename, line range, section, score, and source/project metadata. Conversion back to the public evidence schema retains those values. The existing Qdrant storage adapter continues to enforce filters and retryable, idempotent writes.
 
 Top-K defaults to eight and can be configured. A minimum cosine similarity of 0.35 excludes very weak matches. Similarity scores and model timings stay in internal report metadata; the interface focuses on conclusions and supporting file citations. Time-window hard filtering, hybrid search, and reranking are future experiments; the initial pipeline is semantic retrieval with metadata constraints.
 
@@ -24,7 +28,9 @@ If no evidence is retrieved, the service returns INSUFFICIENT without calling th
 
 The system rules treat both incident descriptions and uploaded sources as untrusted data. The model has no tools, network actions, or command execution. It must distinguish observed facts from hypotheses, cite evidence IDs, and acknowledge unrelated or incomplete evidence.
 
-LangChain's actual role is `PromptTemplate` formatting. Provider invocation, retries, retrieval, and validation are explicit application code; there are no agents or opaque orchestration chains.
+The generation chain composes `ChatPromptTemplate` with `ChatGoogleGenerativeAI.with_structured_output(Report, method="json_schema")`. System rules and untrusted input occupy separate chat messages. Gemini receives the report's JSON schema, and LangChain parses the response into the Pydantic report model. No tools or agents are configured.
+
+The Gemini Developer API is explicitly selected. Existing model settings, temperature, output limit, and 60-second request timeout are preserved. SDK attempts are limited to one per application attempt; the bounded application retry policy handles provider failures, including errors wrapped by LangChain. Invalid structured output returns a safe error without retrying generation. LangSmith tracing is disabled around retrieval and report generation so source content is not sent to an additional tracing service. No tracing account or key is required.
 
 Pydantic rejects extra report fields, invalid sufficiency values, and uncited suspected causes. Application validation rejects unknown evidence IDs and invented affected services. An INSUFFICIENT report must contain no suspected causes; supported report states must contain at least one cited cause. A SUFFICIENT result supported only by scores below 0.6 is conservatively downgraded to PARTIAL.
 

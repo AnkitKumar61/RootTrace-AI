@@ -9,7 +9,7 @@ from app.services.providers import ProviderFailure
 
 
 class Embeddings:
-    async def embed_batch(self, texts, **kwargs):
+    async def aembed_documents(self, texts, **kwargs):
         return [[1.0, 0.0] for _ in texts]
 
 
@@ -60,7 +60,7 @@ def test_internal_auth_ingestion_validation_and_deleted_project_barrier():
 
 def test_ingestion_quota_failure_has_safe_reason_and_retry_timing():
     class LimitedEmbeddings:
-        async def embed_batch(self, texts, **kwargs):
+        async def aembed_documents(self, texts, **kwargs):
             raise ProviderFailure(429, retry_after=120)
 
     pipeline = FakePipeline()
