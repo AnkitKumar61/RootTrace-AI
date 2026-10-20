@@ -1,6 +1,14 @@
 # Vercel and Render deployment
 
-This setup uses **Vercel Hobby** for the frontend and **two Render Free web services** for the backend. It uses native Node/Python runtimes, private ImageKit uploads, and your existing managed database, Redis, vector index, and model provider. No Docker, paid worker, persistent disk, or new database service is provisioned. No live deployment has been published.
+This setup uses **Vercel Hobby** for the frontend and **two Render Free web services** for the backend. It uses native Node/Python runtimes, private ImageKit uploads, and existing managed database, Redis, vector index, and model accounts. No Docker, paid worker, persistent disk, or new database service is provisioned.
+
+## Current deployment
+
+Open **[RootTrace](https://roottrace-pied.vercel.app)** and create an account. The hosted database is separate from the local installation, so local accounts, projects, and files are not available online.
+
+The frontend is connected to GitHub on Vercel Hobby. The `roottrace-api` and `roottrace-analysis` services are managed by the repository Blueprint on Render Free, with deployment after successful GitHub checks. Backend credentials are private platform settings. No payment method was added. Changes to private Vercel routing variables require a new frontend deployment.
+
+The hosted MongoDB URI selects `roottrace_deployed`. Its database user needs `readWrite` on that database; selecting a new database name in the URI does not grant access automatically. The hosted queue and vector collection are also separate from local development. See the [verification record](verification.md) for checks performed and remaining limits.
 
 ## What runs where
 
@@ -55,7 +63,7 @@ The Blueprint pins Node through `.nvmrc`/`package.json` and Python through `PYTH
 
 After creation, note the API service's actual `https://…onrender.com` URL. In its environment settings, privately copy the generated **`API_PROXY_SECRET`** for the next step. Do not copy `AI_SERVICE_SECRET`, provider keys, or JWT secrets to Vercel.
 
-The checked-in manifests have been checked against the platforms' public JSON schemas. If the Render CLI is installed and authenticated, also run `render blueprints validate render.yaml` before applying. Dashboard validation and actual build/runtime behavior still need to pass in your account; local schema validation does not create or inspect hosted resources.
+The checked-in manifests passed public JSON schema checks and the Render Blueprint was applied successfully. Both services built and started using native runtimes. For another account, run `render blueprints validate render.yaml` with an authenticated Render CLI, or use Dashboard validation before applying; local schema validation alone does not inspect hosted resources.
 
 ## 3. Import the frontend into Vercel Hobby
 
@@ -87,7 +95,7 @@ Browser requests stay on `/api` at the frontend origin. Vercel forwards them to 
 
 Vercel externally proxied requests have a **120-second limit**. A cold backend plus a long synchronous investigation can exceed it. Do not immediately repeat an investigation after a proxy timeout: reopen the incident history to check whether it completed and saved a report. Wake and verify both services first, then retry only when the earlier attempt has finished or failed. Upload ingestion remains asynchronous and has bounded worker retries. See [Vercel limits](https://vercel.com/docs/limits).
 
-Hosting-specific TLS, header forwarding, cold starts, available memory, and the complete online workflow remain unverified until those services have actually been created and exercised. Local tests do not replace this final hosted check. Avoid redeploying while uploads, investigations, or project cleanup are active; the cancellation barrier assumes one analysis instance and does not span overlapping deploys.
+Repeat the online checks after hosting changes. A successful fixture workflow does not establish maximum file size, concurrent-user capacity, or continuous availability. Avoid redeploying while uploads, investigations, or project cleanup are active; the cancellation barrier assumes one analysis instance and does not span overlapping deploys.
 
 Render Free does not support a custom `maxShutdownDelaySeconds`. The API/worker supervisor allows 25 seconds to drain within the default 30-second window, and analysis uses a 20-second graceful timeout. Long jobs can be interrupted by a deploy or shutdown; BullMQ's stalled-job handling and deterministic indexing support safe retries after restart. This does not guarantee that work finishes while a free service is asleep.
 
@@ -164,4 +172,4 @@ Do not serve the repository root or uploaded files through a static web server. 
 - Quotas: monitor Redis commands, vector capacity, and provider rate limits. A 30-second idle queue wait still incurs commands, as do stalled-job checks and retention maintenance. Stop development workers when finished.
 - Secrets: scan staged changes and full outgoing history with Gitleaks. Rotate any credential that was exposed through an insecure channel and update backend configuration privately.
 
-Native launch, production static routing, and secure configuration checks have been exercised locally. Host-specific TLS, persistent-disk configuration, proxy behavior, backups, and a deployed domain remain unverified until a hosting environment is selected and tested.
+Native launch and production static routing have been exercised locally. Public HTTPS, the Vercel proxy, secure cookies, and managed-service access have also been exercised on the hosted app. Persistent disks are not used. Backup recovery, load capacity, and multi-replica operation have not been verified.

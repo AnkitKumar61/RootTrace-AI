@@ -1,8 +1,22 @@
 # Verification record
 
+## Public deployment — 2026-10-20
+
+[RootTrace](https://roottrace-pied.vercel.app) is deployed on Vercel Hobby with two native Render Free web services. The Render Blueprint was applied to the two existing services, with no duplicate resources. Python 3.11.17 and Node.js 24 builds started successfully. Both Render services use Free compute; the workspace showed no card on file. No payment method or paid resource was added.
+
+The hosted environment uses a separate MongoDB database, Redis queue, and Qdrant collection. The first API start exposed a missing database permission; granting only `readWrite` on the hosted database, while retaining the local database permission, resolved it. Public readiness returned 200 with database, Redis, and analysis ready. Direct protected API access returned 403, and analysis readiness without its internal secret returned 401.
+
+Hosted browser checks passed for registration, sign-in, a new project, automatic source-status updates, incident creation, real investigation, report persistence after reload, and opening the original payment-log lines from private cloud storage. All seven fictional ShopFlow files were uploaded through the public HTTPS API and returned 202 in approximately 3.2–3.5 seconds each before reaching READY. Automated browser file selection was blocked by the Chrome extension's file-URL permission; that picker action was not verified on the hosted page. Multiple-file selection was previously verified locally with the unchanged upload interface.
+
+Additional HTTPS checks passed for Secure/HttpOnly/SameSite cookies, session persistence and revocation, origin validation, uncached API responses, invalid-extension rejection, cross-user project/source isolation, hidden storage references, project editing, incident resolution, and report evidence belonging to the project's ready sources. All seven original files were confirmed private in ImageKit. The test project was deleted through the API and disappeared from the UI. Subsequent checks found all seven cloud files missing, zero vector points for that project, and no remaining project/source/incident/report metadata.
+
+The desktop report had no horizontal overflow at 1280 pixels and no application console errors were observed. Responsive layouts were previously checked locally at 390 pixels; a hosted mobile viewport was not exercised in this browser session. GitHub checks passed for the deployed implementation, including 37 Node, 10 React, and 35 Python tests, builds, lint, dependency checks, and secret scanning.
+
+These checks use small fictional fixtures. Maximum-size uploads, concurrent-user capacity, backup recovery, repeated idle cold starts, monthly quota exhaustion, and continuous uptime have not been established. Free services can sleep or exhaust allowances. Keep one analysis process and avoid redeploying during active work. Local accounts and uploads were not migrated.
+
 ## Free hosting preparation — 2026-10-20
 
-The Vercel frontend build and two native Render Free web services are configured in the repository. Automated coverage totals 37 Node, 10 React, and 35 Python tests. The client build, JavaScript/Python lint, dependency consistency checks, and production dependency audit passed. Both hosting manifests and the generated Vercel routing rules passed validation against the platforms' public JSON schemas. Render CLI/account validation and hosted builds have not been run.
+Before publication, the Vercel frontend build and two native Render Free web services were configured in the repository. Automated coverage totaled 37 Node, 10 React, and 35 Python tests. The client build, JavaScript/Python lint, dependency consistency checks, and production dependency audit passed. Both hosting manifests and the generated Vercel routing rules passed public JSON schema validation. The later hosted check above supersedes the pending deployment checks in this preparation record.
 
 New checks exercise API-only production startup, direct-backend rejection, origin validation, Secure/HttpOnly/SameSite cookies, session revocation, API cache prevention, private proxy configuration outside static files, SPA/API routing order, and separate hosted queue settings. Real fixture child processes verify supervisor shutdown through IPC; controlled failures verify whole-service termination and a finite shutdown deadline. Invalid worker connection settings and an unsupported local-storage hosting configuration fail with redacted messages.
 
@@ -10,7 +24,7 @@ The Vercel build was generated using fictional routing values. Its public files 
 
 After restarting the updated local application, the full browser workflow passed against configured managed services: registration/login, seven private ImageKit uploads, READY processing, incident investigation, persisted report after reload, original citation lines, cross-user isolation, responsive navigation, and project cleanup. An initial attempt encountered a temporary storage/Redis connection failure on one file; its exact fictional project was cleaned up before the successful repeat. This result does not establish continuous provider availability.
 
-No hosted resources or payment methods were created. Public HTTPS, Vercel header/cookie forwarding, Render cold starts and memory capacity, the selected hosted Python patch, and the complete online workflow still require verification after account setup. The local cancellation barrier continues to require one analysis process; avoid overlapping deployment and active processing. Existing local uploads have not been migrated.
+At this preparation stage no hosted resources or payment methods had been created. Public HTTPS, forwarding, hosted runtimes, and the online workflow were still pending. The local cancellation barrier continues to require one analysis process; avoid overlapping deployment and active processing. Existing local uploads have not been migrated.
 
 ## Private cloud storage — 2026-10-20
 
@@ -18,7 +32,7 @@ All 30 Node, 10 React, and 35 Python tests passed, along with the frontend build
 
 Live checks uploaded a small fictional file in each supported format (`.log`, `.txt`, `.json`, `.md`), verified exact contents through signed reads, confirmed unsigned requests were rejected, and deleted those exact test files. With ImageKit selected, the full browser workflow passed: registration/login, seven fictional uploads, READY states, incident investigation, persisted report, original citation lines, ownership checks, responsive navigation, and project cleanup. An earlier saved ShopFlow report still opened its original local-file citation. No earlier user files were copied to ImageKit during this change.
 
-The ignored local configuration selects ImageKit for new uploads. Existing local sources continue to need their original upload directory. Public deployment and automatic migration of existing files have not been performed. Real service checks used small fictional fixtures; they do not establish the maximum file size or ongoing quota availability for an ImageKit account.
+The ignored local configuration selects ImageKit for new uploads. Existing local sources continue to need their original upload directory. At this storage-integration stage public deployment had not been performed. Existing files are not automatically migrated. Real service checks used small fictional fixtures; they do not establish the maximum file size or ongoing quota availability for an ImageKit account.
 
 ## LangChain integration — 2026-10-18
 
@@ -65,4 +79,4 @@ The product interface focuses on uploads, incidents, reports, and original file 
 
 Provider error, invalid output, weak evidence, and prompt-injection cases are controlled automated tests. They test handling and validation boundaries; they do not establish that a model will always resist every attack or correctly explain every production incident. Live checks use fictional fixtures and configured services.
 
-The application remains a single-analysis-process deployment. Local sources need shared API/worker file storage; ImageKit sources can be accessed from separate hosts. No public hosting, reverse-proxy TLS, production backups, or multi-replica operation has been exercised. These hosting-specific concerns are listed in the deployment guide.
+The application remains a single-analysis-process deployment. Local sources need shared API/worker file storage; ImageKit sources can be accessed from separate hosts. Public hosting and reverse-proxy TLS are covered by the hosted check above. Backup recovery and multi-replica operation remain unverified. Operational limits are listed in the deployment guide.

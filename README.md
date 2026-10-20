@@ -4,7 +4,9 @@
 
 RootTrace helps developers investigate incidents using application logs and optional documentation. Upload relevant files, describe the problem, and get a saved report with suspected causes, suggested checks, and clickable references to the original file lines.
 
-[Quick start](#quick-start) · [Try the demo](#try-it-with-shopflow) · [How it works](#how-it-works) · [Documentation](#documentation)
+[Open RootTrace](https://roottrace-pied.vercel.app) · [Quick start](#quick-start) · [Try the demo](#try-it-with-shopflow) · [Documentation](#documentation)
+
+The hosted app uses a separate database. Create an account to start; accounts and files from a local installation are not copied online. Free backend services may take about a minute to wake after inactivity.
 
 ![RootTrace project overview showing seven ready sources, a payment incident, and its saved investigation](docs/screenshots/dashboard.png)
 
@@ -176,7 +178,7 @@ The deployment layout uses private ImageKit storage or a shared persistent API/w
 
 The repository includes configuration for **Vercel Hobby** (frontend) and **two Render Free web services** (API with its upload worker, and Python analysis). It uses native runtimes and private ImageKit files, with no Docker or paid hosting resources. Separate hosted queue and vector names keep local and deployed work apart; use a dedicated hosted MongoDB database as well.
 
-Follow the [deployment guide](docs/deployment.md) for exact settings, private environment variables, and online verification. Keep the accounts on free plans without adding a payment method. Render's services sleep and share a monthly allowance, so this is a personal demo setup with possible cold-start delays. Earlier local uploads are not moved automatically. Configuration is prepared; no public deployment is included.
+The [public app](https://roottrace-pied.vercel.app) runs on this setup. Follow the [deployment guide](docs/deployment.md) for settings, private environment variables, and verification. Keep the accounts on free plans without adding a payment method. Render's services sleep and share a monthly allowance, so this is a personal demo setup with possible cold-start delays. Earlier local uploads are not moved automatically.
 
 ## Development and checks
 
