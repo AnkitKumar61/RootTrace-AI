@@ -11,6 +11,18 @@ const schema = z.object({
   PORT: z.coerce.number().int().positive().default(5000),
   HOST: z.string().default("127.0.0.1"),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(2).default(0),
+  SERVE_CLIENT: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
+  API_PROXY_SECRET: z
+    .string()
+    .default("")
+    .refine(
+      (v) =>
+        !v ||
+        (v.length >= 32 && v.length <= 256 && /^[A-Za-z0-9+/_=-]+$/.test(v)),
+    ),
   CLIENT_URL: z.url().default("http://localhost:5173"),
   MONGODB_URI: z.string().default(""),
   REDIS_URL: z.string().default(""),
@@ -19,6 +31,10 @@ const schema = z.object({
   AI_SERVICE_URL: z.url().default("http://127.0.0.1:8000"),
   MAX_FILE_SIZE_MB: z.coerce.number().positive().max(100).default(20),
   WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(8).default(1),
+  QUEUE_NAME: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{1,80}$/)
+    .default("roottrace-work"),
   INGEST_TIMEOUT_MS: z.coerce.number().int().positive().default(300000),
   STORAGE_PROVIDER: z.enum(["local", "imagekit"]).default("local"),
   IMAGEKIT_PRIVATE_KEY: z.string().trim().default(""),

@@ -1,5 +1,17 @@
 # Verification record
 
+## Free hosting preparation — 2026-10-20
+
+The Vercel frontend build and two native Render Free web services are configured in the repository. Automated coverage totals 37 Node, 10 React, and 35 Python tests. The client build, JavaScript/Python lint, dependency consistency checks, and production dependency audit passed. Both hosting manifests and the generated Vercel routing rules passed validation against the platforms' public JSON schemas. Render CLI/account validation and hosted builds have not been run.
+
+New checks exercise API-only production startup, direct-backend rejection, origin validation, Secure/HttpOnly/SameSite cookies, session revocation, API cache prevention, private proxy configuration outside static files, SPA/API routing order, and separate hosted queue settings. Real fixture child processes verify supervisor shutdown through IPC; controlled failures verify whole-service termination and a finite shutdown deadline. Invalid worker connection settings and an unsupported local-storage hosting configuration fail with redacted messages.
+
+The Vercel build was generated using fictional routing values. Its public files contained neither the proxy credential nor values from the ignored local environment. Generated Vercel files are ignored and explicitly rejected by the repository's tracked-file safety check. No credentials or user uploads are committed.
+
+After restarting the updated local application, the full browser workflow passed against configured managed services: registration/login, seven private ImageKit uploads, READY processing, incident investigation, persisted report after reload, original citation lines, cross-user isolation, responsive navigation, and project cleanup. An initial attempt encountered a temporary storage/Redis connection failure on one file; its exact fictional project was cleaned up before the successful repeat. This result does not establish continuous provider availability.
+
+No hosted resources or payment methods were created. Public HTTPS, Vercel header/cookie forwarding, Render cold starts and memory capacity, the selected hosted Python patch, and the complete online workflow still require verification after account setup. The local cancellation barrier continues to require one analysis process; avoid overlapping deployment and active processing. Existing local uploads have not been migrated.
+
 ## Private cloud storage — 2026-10-20
 
 All 30 Node, 10 React, and 35 Python tests passed, along with the frontend build, JavaScript/Python lint, dependency audit, and live readiness checks. Storage tests exercise private upload parameters through the real ImageKit SDK with a mocked transport, signed reads, bounded/truncated downloads, hidden storage references, ownership, retry queueing, cloud worker processing without local paths, and mixed local/cloud deletion after a lost delete response. An already-missing cloud file is safely treated as deleted, while transient failures retain project metadata for retry.

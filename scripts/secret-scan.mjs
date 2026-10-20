@@ -7,7 +7,7 @@ const unsafe = tracked.stdout
   .filter(
     (file) =>
       file &&
-      /(^|\/)(?:\.env(?:\..+)?|\.venv|node_modules|uploads|\.local|__pycache__)(?:\/|$)/.test(
+      /(^|\/)(?:\.env(?:\..+)?|\.venv|\.vercel|node_modules|uploads|\.local|__pycache__)(?:\/|$)/.test(
         file,
       ) &&
       !file.endsWith(".env.example"),

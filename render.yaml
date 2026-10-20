@@ -1,0 +1,88 @@
+# Both services explicitly use Free compute. Existing managed data services are reused.
+previews:
+  generation: "off"
+services:
+  - type: web
+    name: roottrace-analysis
+    runtime: python
+    plan: free
+    region: ohio
+    autoDeployTrigger: checksPass
+    buildCommand: pip install -r ai-service/requirements-lock.txt
+    startCommand: python -m uvicorn app.main:app --app-dir ai-service --host 0.0.0.0 --port $PORT --workers 1 --no-access-log --timeout-graceful-shutdown 260
+    healthCheckPath: /health
+    maxShutdownDelaySeconds: 300
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.17
+      - key: AI_SERVICE_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION
+        value: roottrace_deployed_gemini_embedding2_768
+      - key: LLM_MODEL
+        value: gemini-3.5-flash-lite
+      - key: EMBEDDING_MODEL
+        value: gemini-embedding-2
+      - key: EMBEDDING_DIMENSIONS
+        value: "768"
+      - key: MAX_FILE_SIZE_MB
+        value: "20"
+  - type: web
+    name: roottrace-api
+    runtime: node
+    plan: free
+    region: ohio
+    autoDeployTrigger: checksPass
+    buildCommand: npm ci --omit=dev --workspace server
+    startCommand: node scripts/start-render.mjs
+    healthCheckPath: /api/health
+    maxShutdownDelaySeconds: 300
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: SERVE_CLIENT
+        value: "false"
+      - key: TRUST_PROXY_HOPS
+        value: "2"
+      - key: STORAGE_PROVIDER
+        value: imagekit
+      - key: WORKER_CONCURRENCY
+        value: "1"
+      - key: QUEUE_NAME
+        value: roottrace-deployed-work
+      - key: INGEST_TIMEOUT_MS
+        value: "240000"
+      - key: MAX_FILE_SIZE_MB
+        value: "20"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: API_PROXY_SECRET
+        generateValue: true
+      - key: AI_SERVICE_SECRET
+        fromService:
+          type: web
+          name: roottrace-analysis
+          envVarKey: AI_SERVICE_SECRET
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: roottrace-analysis
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: CLIENT_URL
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: IMAGEKIT_PRIVATE_KEY
+        sync: false
+      - key: IMAGEKIT_URL_ENDPOINT
+        sync: false

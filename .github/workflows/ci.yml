@@ -29,6 +29,11 @@ jobs:
       - run: python -m pip install -r ai-service/requirements-lock.txt
       - run: npm run lint
       - run: npm run build
+      - name: Check Vercel build and routing
+        run: npm run build:vercel
+        env:
+          RENDER_API_ORIGIN: https://fictional-api.onrender.com
+          API_PROXY_SECRET: test-only-proxy-credential-1234567890
       - run: npm test
       - run: python -m ruff check app tests
         working-directory: ai-service

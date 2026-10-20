@@ -1,7 +1,8 @@
 import { Queue } from "bullmq";
 import { createRedis } from "../config/redis.js";
+import { env } from "../config/env.js";
 let queue;
-export const queueName = "roottrace-work";
+export const queueName = env.QUEUE_NAME;
 export function getQueue() {
   queue ??= new Queue(queueName, { connection: createRedis() });
   return queue;

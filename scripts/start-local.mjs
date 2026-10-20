@@ -15,7 +15,7 @@ if (!fs.existsSync(python) || !fs.existsSync("node_modules")) {
 }
 const commands = [
   ["server", process.execPath, ["server/src/server.js"]],
-  ["worker", process.execPath, ["server/src/worker.js"]],
+  ["worker", process.execPath, ["server/src/start-worker.js"]],
   [
     "analysis",
     python,

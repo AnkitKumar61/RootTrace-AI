@@ -1,0 +1,14 @@
+.env
+.env.*
+.local
+.tools
+.vercel
+client/dist
+uploads
+ai-service
+docs
+demo-data
+server/src
+server/tests
+node_modules
+.git

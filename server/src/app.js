@@ -14,6 +14,7 @@ import { projectRoutes } from "./routes/projects.js";
 import { sourceRoutes } from "./routes/sources.js";
 import { incidentRoutes, projectIncidentRoutes } from "./routes/incidents.js";
 import { investigationRoutes, reportRoutes } from "./routes/investigations.js";
+import { proxyAccess } from "./middleware/proxy.js";
 export function createApp(services = {}) {
   const app = express();
   app.disable("x-powered-by");
@@ -26,8 +27,10 @@ export function createApp(services = {}) {
   app.use(helmet());
   app.use("/api", (_req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
+    res.setHeader("CDN-Cache-Control", "no-store");
     next();
   });
+  app.use("/api", proxyAccess(env.API_PROXY_SECRET));
   app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
   app.use(express.json({ limit: "64kb" }));
   app.use(cookieParser());
@@ -40,7 +43,7 @@ export function createApp(services = {}) {
   app.use("/api/incidents", incidentRoutes());
   app.use("/api/incidents", investigationRoutes(services));
   app.use("/api/investigations", reportRoutes());
-  if (env.NODE_ENV === "production") {
+  if (env.NODE_ENV === "production" && env.SERVE_CLIENT) {
     const directory = path.join(rootDir, "client/dist"),
       index = path.join(directory, "index.html");
     if (!existsSync(index))

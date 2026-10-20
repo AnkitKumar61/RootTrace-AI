@@ -55,3 +55,24 @@ test("ImageKit requires a private key and a clean HTTPS endpoint without exposin
       (error) => !error.message.includes("private-marker"),
     );
 });
+
+test("deployment settings parse booleans and isolate queue names without exposing proxy secrets", () => {
+  assert.equal(
+    validateEnv({
+      ...input,
+      SERVE_CLIENT: "false",
+      QUEUE_NAME: "roottrace-deployed-work",
+    }).SERVE_CLIENT,
+    false,
+  );
+  assert.equal(validateEnv(input).QUEUE_NAME, "roottrace-work");
+  for (const change of [
+    { SERVE_CLIENT: "yes" },
+    { QUEUE_NAME: "namespace:invalid" },
+    { API_PROXY_SECRET: "private-marker" },
+  ])
+    assert.throws(
+      () => validateEnv({ ...input, ...change }),
+      (error) => !error.message.includes("private-marker"),
+    );
+});

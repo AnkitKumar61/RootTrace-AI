@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "worker": "node src/worker.js",
+    "worker": "node src/start-worker.js",
     "test": "node --test --test-concurrency=1 tests/*.test.js",
     "test:queue": "node --test tests/queue.integration.js"
   },
