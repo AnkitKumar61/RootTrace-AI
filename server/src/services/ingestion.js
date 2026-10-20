@@ -1,6 +1,6 @@
 import FormData from "form-data";
 import { z } from "zod";
-import { analysisRequest } from "./analysisClient.js";
+import { analysisRequest, waitForAnalysis } from "./analysisClient.js";
 import { env } from "../config/env.js";
 import { storage } from "./storage.js";
 const result = z.object({
@@ -9,8 +9,17 @@ const result = z.object({
 });
 export async function ingestSource(
   source,
-  { store = storage, request = analysisRequest } = {},
+  {
+    store = storage,
+    request = analysisRequest,
+    waitUntilReady = waitForAnalysis,
+    isActive = async () => true,
+    onWaiting,
+  } = {},
 ) {
+  if (!(await waitUntilReady({ isActive, onWaiting })))
+    return { skipped: true };
+  if (!(await isActive())) return { skipped: true };
   const form = new FormData();
   form.append("projectId", String(source.projectId));
   form.append("sourceId", String(source._id));

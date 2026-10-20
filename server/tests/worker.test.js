@@ -168,3 +168,25 @@ test("workers process cloud references without a local path and persist safe sto
   assert.match(saved.processingError, /storage/);
   assert.doesNotMatch(saved.processingError, /private key marker/);
 });
+
+test("workers show startup waiting and stop if a project is deleted during the wait", async () => {
+  const { project, source, job, values } = await fixture();
+  const result = await processIngestion(job, {
+    ingest: async (_source, { isActive, onWaiting }) => {
+      await onWaiting();
+      assert.match(
+        (await Source.findById(source._id)).processingStage,
+        /Waiting for analysis service/,
+      );
+      await Project.updateOne(
+        { _id: project._id },
+        { $set: { status: "DELETING" } },
+      );
+      assert.equal(Boolean(await isActive()), false);
+      return { skipped: true };
+    },
+  });
+  assert.deepEqual(result, { skipped: true });
+  assert.deepEqual(values, [10, 30, 30]);
+  assert.notEqual((await Source.findById(source._id)).status, "READY");
+});

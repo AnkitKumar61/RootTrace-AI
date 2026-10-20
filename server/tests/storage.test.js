@@ -210,6 +210,7 @@ test("ingestion streams cloud bytes to analysis without a filesystem path and cl
   let streamed = false;
   const result = await ingestSource(source, {
     store,
+    waitUntilReady: async () => true,
     request: async (method, url, form) => {
       assert.equal(method, "POST");
       assert.equal(url, "/internal/ingest");
@@ -234,6 +235,7 @@ test("ingestion streams cloud bytes to analysis without a filesystem path and cl
   await assert.rejects(
     ingestSource(source, {
       store,
+      waitUntilReady: async () => true,
       request: async () => {
         throw new Error("fictional analysis failure");
       },

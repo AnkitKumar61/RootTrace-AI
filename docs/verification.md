@@ -1,5 +1,11 @@
 # Verification record
 
+## Upload recovery after idle — 2026-10-20
+
+A hosted Apache upload exhausted three retries in approximately 23 seconds while analysis was unavailable. An on-demand health request then took approximately 56 seconds to return the analysis service's expected response. Public readiness recovered without changing plans or credentials. Retrying the existing upload reached READY with 49 chunks; no duplicate upload was created. This exposed a startup gap that the earlier warm-service fixture run did not exercise.
+
+Ingestion now waits for analysis liveness before opening or streaming an original file. A local HTTP regression test simulates a 503 followed by an HTML loading page and then a healthy response; a 172 KB fictional log is sent intact exactly once after startup. Additional tests cover the two-minute deadline, safe failure messages, and project deletion while waiting. Existing cloud-stream tests still verify closure after success and failure. The wait runs only when processing a queued source; it does not keep idle hosting alive.
+
 ## Public deployment — 2026-10-20
 
 [RootTrace](https://roottrace-pied.vercel.app) is deployed on Vercel Hobby with two native Render Free web services. The Render Blueprint was applied to the two existing services, with no duplicate resources. Python 3.11.17 and Node.js 24 builds started successfully. Both Render services use Free compute; the workspace showed no card on file. No payment method or paid resource was added.

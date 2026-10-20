@@ -34,7 +34,10 @@ export async function processIngestion(job, { ingest } = {}) {
       "PROCESSOR_UNAVAILABLE",
       "Source processing is not available yet.",
     );
-  const result = await ingest(source);
+  const result = await ingest(source, {
+    isActive: active,
+    onWaiting: () => progress(30, "Waiting for analysis service to start"),
+  });
   if (!(await active())) return { skipped: true };
   await progress(90, "Indexing complete");
   await Source.updateOne(
@@ -65,7 +68,7 @@ export async function recordIngestionFailure(job, error) {
       : "The processing provider's usage limit was reached. Your file is saved and an automatic retry is scheduled.";
   else if (error?.code === "ANALYSIS_UNAVAILABLE")
     processingError = terminal
-      ? "The analysis service could not be reached or complete processing. Your file is saved. Check that the service is running, then retry."
+      ? "The analysis service is temporarily unavailable. Your file is saved. Retry in a few minutes."
       : "The analysis service is unavailable. Your file is saved and an automatic retry is scheduled.";
   else if (error?.code === "ANALYSIS_VALIDATION")
     processingError =

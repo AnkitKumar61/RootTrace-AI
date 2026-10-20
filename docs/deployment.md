@@ -28,6 +28,8 @@ Keep both hosting accounts on their free/Hobby workspace plans. Review that **bo
 
 Render Free sleeps after 15 minutes without inbound traffic and can take about a minute to wake up. The two services share **750 running hours per workspace per month**. A queue worker does not keep a sleeping web service available. Opening the application wakes the API; ingestion or readiness requests wake analysis. Polling active uploads keeps normal upload requests flowing while the page is visible, but it is not an always-on guarantee. There is no scheduled keep-alive or quota bypass.
 
+When processing a queued file, the worker first waits up to two minutes for analysis liveness, checking every five seconds. It opens the stored file stream only after the service responds with its expected health response. The source shows **Waiting for analysis service to start** during this wait. A failed startup still uses the bounded job retries; quota and processing failures remain visible. This check runs only for real upload work and stops if the project is deleted.
+
 Without a payment method, Render suspends services/builds when applicable free allowances run out. Outbound database, storage, and provider traffic can also trigger free-service restrictions. Vercel Hobby is for personal, noncommercial use. Existing storage, Redis, vector, and model quotas still apply; processing can fail honestly when those services are unavailable. This setup is for a personal demo and testing, with no availability or load guarantee. See [Render Free](https://render.com/docs/free) and [Vercel Hobby](https://vercel.com/docs/plans/hobby).
 
 ## 1. Prepare private credentials
