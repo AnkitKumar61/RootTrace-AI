@@ -20,8 +20,8 @@ try {
       ["API", "server/src/server.js"],
       ["Worker", "server/src/start-worker.js"],
     ],
-    // Render allows 300 seconds; leave time for process termination after draining.
-    shutdownMs: 280000,
+    // Free services use Render's default 30-second shutdown window.
+    shutdownMs: 25000,
   });
   process.once("SIGTERM", () => service.stop());
   process.once("SIGINT", () => service.stop());

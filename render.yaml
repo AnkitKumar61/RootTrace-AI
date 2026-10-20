@@ -9,9 +9,8 @@ services:
     region: ohio
     autoDeployTrigger: checksPass
     buildCommand: pip install -r ai-service/requirements-lock.txt
-    startCommand: python -m uvicorn app.main:app --app-dir ai-service --host 0.0.0.0 --port $PORT --workers 1 --no-access-log --timeout-graceful-shutdown 260
+    startCommand: python -m uvicorn app.main:app --app-dir ai-service --host 0.0.0.0 --port $PORT --workers 1 --no-access-log --timeout-graceful-shutdown 20
     healthCheckPath: /health
-    maxShutdownDelaySeconds: 300
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.17
@@ -42,7 +41,6 @@ services:
     buildCommand: npm ci --omit=dev --workspace server
     startCommand: node scripts/start-render.mjs
     healthCheckPath: /api/health
-    maxShutdownDelaySeconds: 300
     envVars:
       - key: NODE_ENV
         value: production

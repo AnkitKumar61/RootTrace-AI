@@ -199,6 +199,7 @@ test("Render manifest provisions only two native Free web services and shares th
     assert.equal(service.plan, "free");
     assert.equal(service.autoDeployTrigger, "checksPass");
     assert.equal(service.disk, undefined);
+    assert.equal(service.maxShutdownDelaySeconds, undefined);
     assert.ok(!service.runtime.includes("docker"));
     for (const setting of service.envVars.filter((v) =>
       /KEY|SECRET|MONGODB_URI|REDIS_URL/.test(v.key),

@@ -89,6 +89,8 @@ Vercel externally proxied requests have a **120-second limit**. A cold backend p
 
 Hosting-specific TLS, header forwarding, cold starts, available memory, and the complete online workflow remain unverified until those services have actually been created and exercised. Local tests do not replace this final hosted check. Avoid redeploying while uploads, investigations, or project cleanup are active; the cancellation barrier assumes one analysis instance and does not span overlapping deploys.
 
+Render Free does not support a custom `maxShutdownDelaySeconds`. The API/worker supervisor allows 25 seconds to drain within the default 30-second window, and analysis uses a 20-second graceful timeout. Long jobs can be interrupted by a deploy or shutdown; BullMQ's stalled-job handling and deterministic indexing support safe retries after restart. This does not guarantee that work finishes while a free service is asleep.
+
 ## Runtime layout
 
 Use Node.js 24 and Python 3.11. Install with `npm ci`, create a Python environment, install `ai-service/requirements-lock.txt`, and run `npm run build` before starting the API in production.
