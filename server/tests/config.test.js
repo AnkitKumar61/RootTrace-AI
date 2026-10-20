@@ -29,3 +29,29 @@ test("production configuration requires secure origin and Redis TLS without prin
     (error) => !error.message.includes("private-marker"),
   );
 });
+
+test("ImageKit requires a private key and a clean HTTPS endpoint without exposing values", () => {
+  const configuration = {
+    ...input,
+    STORAGE_PROVIDER: "imagekit",
+    IMAGEKIT_PRIVATE_KEY: "private-marker",
+    IMAGEKIT_URL_ENDPOINT: "https://ik.imagekit.io/fictional",
+  };
+  assert.equal(validateEnv(configuration).STORAGE_PROVIDER, "imagekit");
+  for (const change of [
+    { IMAGEKIT_PRIVATE_KEY: "" },
+    { IMAGEKIT_URL_ENDPOINT: "bad-private-marker" },
+    { IMAGEKIT_URL_ENDPOINT: "http://ik.imagekit.io/fictional" },
+    {
+      IMAGEKIT_URL_ENDPOINT: "https://private-marker@ik.imagekit.io/fictional",
+    },
+    {
+      IMAGEKIT_URL_ENDPOINT:
+        "https://ik.imagekit.io/fictional?token=private-marker",
+    },
+  ])
+    assert.throws(
+      () => validateEnv({ ...configuration, ...change }),
+      (error) => !error.message.includes("private-marker"),
+    );
+});

@@ -20,6 +20,9 @@ const schema = z.object({
   MAX_FILE_SIZE_MB: z.coerce.number().positive().max(100).default(20),
   WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(8).default(1),
   INGEST_TIMEOUT_MS: z.coerce.number().int().positive().default(300000),
+  STORAGE_PROVIDER: z.enum(["local", "imagekit"]).default("local"),
+  IMAGEKIT_PRIVATE_KEY: z.string().trim().default(""),
+  IMAGEKIT_URL_ENDPOINT: z.string().trim().default(""),
 });
 export function validateEnv(values) {
   const parsed = schema.safeParse(values);
@@ -28,6 +31,25 @@ export function validateEnv(values) {
       `Invalid environment configuration: ${parsed.error.issues.map((i) => i.path.join(".")).join(", ")}`,
     );
   const result = parsed.data;
+  if (result.STORAGE_PROVIDER === "imagekit") {
+    let endpoint;
+    try {
+      endpoint = new URL(result.IMAGEKIT_URL_ENDPOINT);
+    } catch {
+      throw new Error("Invalid ImageKit configuration: IMAGEKIT_URL_ENDPOINT");
+    }
+    if (
+      !result.IMAGEKIT_PRIVATE_KEY ||
+      endpoint.protocol !== "https:" ||
+      endpoint.username ||
+      endpoint.password ||
+      endpoint.search ||
+      endpoint.hash
+    )
+      throw new Error(
+        "Invalid ImageKit configuration: check private key and HTTPS endpoint",
+      );
+  }
   if (new URL(result.CLIENT_URL).origin !== result.CLIENT_URL)
     throw new Error(
       "CLIENT_URL must be an origin without a path or trailing slash",

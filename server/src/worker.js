@@ -68,7 +68,7 @@ for (const project of await Project.find({ status: "DELETING" }))
   await enqueueCleanup(String(project._id));
 for (const source of await Source.find({
   status: { $in: ["UPLOADED", "QUEUED", "PROCESSING"] },
-}).select("+filePath")) {
+})) {
   if (!(await Project.exists({ _id: source.projectId, status: "ACTIVE" })))
     continue;
   const id = `ingest-${source._id}`;
@@ -81,7 +81,6 @@ for (const source of await Source.find({
       sourceId: String(source._id),
       projectId: String(source.projectId),
       userId: String(source.userId),
-      filePath: source.filePath,
     });
   }
 }

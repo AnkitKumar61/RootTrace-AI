@@ -11,7 +11,7 @@ if (process.env.NODE_ENV === "production") {
   );
   if (response.status !== 0) {
     console.error(
-      "Invalid production environment. Check HTTPS origin, Redis TLS and secret lengths.",
+      "Invalid production environment. Check HTTPS origin, Redis TLS, secret lengths and selected storage settings.",
     );
     process.exit(1);
   }
@@ -59,6 +59,26 @@ check(
     process.env.JWT_SECRET !== process.env.AI_SERVICE_SECRET,
 );
 check("Redis uses TLS", process.env.REDIS_URL?.startsWith("rediss://"));
+if (process.env.STORAGE_PROVIDER === "imagekit") {
+  check("ImageKit SDK", fs.existsSync("node_modules/@imagekit/nodejs"));
+  check(
+    "ImageKit private key configured",
+    Boolean(process.env.IMAGEKIT_PRIVATE_KEY?.trim()),
+  );
+  let endpointValid = false;
+  try {
+    const endpoint = new URL(process.env.IMAGEKIT_URL_ENDPOINT);
+    endpointValid =
+      endpoint.protocol === "https:" &&
+      !endpoint.username &&
+      !endpoint.password &&
+      !endpoint.search &&
+      !endpoint.hash;
+  } catch {
+    /* Report only the configuration state. */
+  }
+  check("ImageKit HTTPS endpoint", endpointValid);
+}
 if (process.argv.includes("--live")) {
   try {
     const response = await fetch(

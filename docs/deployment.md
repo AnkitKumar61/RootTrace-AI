@@ -32,12 +32,32 @@ Configure production secrets through the hosting secret manager or an ignored en
 | Database                 | Dedicated database/user with appropriate permissions and network access |
 | Session/internal secrets | Distinct high-entropy values shared only by the required processes      |
 | Provider/vector keys     | Backend secret configuration only                                       |
+| `STORAGE_PROVIDER`       | `imagekit` for cloud uploads, or `local` with shared persistent storage   |
+| ImageKit                 | Same private key and HTTPS endpoint on API and worker, when enabled     |
 
 Terminate TLS at a trusted reverse proxy. Configure request body limits above the 20 MB upload cap and request timeouts appropriate for investigations (120 seconds internally). The application rejects insecure production origin/Redis configuration. HttpOnly session cookies are Secure in production.
 
 ## Storage and cleanup
 
-The API and worker must see the **same persistent `uploads` directory**. Co-locating them on one host with persistent storage is the initial deployment layout. Two independent ephemeral disks cannot satisfy this contract. FastAPI receives streamed bytes and can live on a separate private host.
+Choose file storage explicitly. The default in `.env.example` is `local`.
+
+For **ImageKit**, configure these backend settings on both the API and worker:
+
+```dotenv
+STORAGE_PROVIDER=imagekit
+IMAGEKIT_PRIVATE_KEY=your-private-key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-account
+```
+
+Use a restricted key with **Media management: Read and write** and **Account management: None**. Uploads are marked private, receive random filenames under `/roottrace`, and are not transformed. The backend generates five-minute signed URLs for its own reads; these URLs and provider references are excluded from public responses. Citation access continues through ownership-protected source-line endpoints. SDK request logging and automatic upload retries are disabled. Storage failures return safe errors; worker processing and project cleanup retain their bounded job retries. Downloads are streamed with byte limits and finite timeouts.
+
+The API waits for the original file to be stored before returning 202 after queueing. Parsing, embedding, and indexing stay asynchronous in the worker. With ImageKit files, API and worker do not need a shared upload disk and can run on separate hosts. Keep the ImageKit key out of frontend variables. Align `MAX_FILE_SIZE_MB` with the account's raw-file upload **and delivery** limits, and monitor storage and bandwidth quotas. The free plan's raw-file delivery limit can differ from its upload limit. See [ImageKit security](https://imagekit.io/docs/media-delivery-basic-security), [delivery limits](https://imagekit.io/docs/transformations), and [plan limits](https://imagekit.io/plans/).
+
+For **local storage**, the API and worker must see the **same persistent `uploads` directory**. Co-locate them on one host with persistent storage or supply a shared volume. Two independent ephemeral disks cannot satisfy this contract.
+
+Changing `STORAGE_PROVIDER` affects **new uploads only**. Existing records without a provider marker continue to use local files. Preserve the original uploads directory and make it available to both processes until those files are intentionally migrated or their projects deleted. Existing ImageKit records still require ImageKit credentials even if new uploads are switched back to local. This release does not automatically copy previous files to another provider.
+
+Deletion removes each source from its recorded provider. An already-deleted ImageKit file is treated as success; other storage errors keep the project DELETING and retain its metadata for a safe retry. MongoDB project deletion remains the final step. FastAPI receives streamed bytes and can live on a separate private host.
 
 Run one analysis process. Its local cancellation barrier prevents ingestion from completing after vector cleanup. Multiple analysis replicas would require a durable cancellation protocol; that is outside the current implementation. Start with worker concurrency one and scale only after considering provider and Redis quotas.
 

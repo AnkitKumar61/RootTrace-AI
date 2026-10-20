@@ -21,7 +21,9 @@ export async function cleanupProject(
       "PROJECT_ACTIVE",
       "Only projects marked for deletion can be cleaned up.",
     );
-  const sources = await Source.find({ projectId }).select("+storedFileName");
+  const sources = await Source.find({ projectId }).select(
+    "+storedFileName +storageProvider +storageFileId",
+  );
   if (queue) {
     const active = await queue.getJobs(["active"]);
     if (
@@ -69,7 +71,7 @@ export async function cleanupProject(
   try {
     await step("vectors", () => removeVectors(projectId));
     await step("files", async () => {
-      for (const source of sources) await store.remove(source.storedFileName);
+      for (const source of sources) await store.remove(source);
     });
     await step("records", async () => {
       for (const name of [

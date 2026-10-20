@@ -19,7 +19,7 @@ flowchart LR
 
 Express owns users, projects, source status, incidents, and persisted reports. MongoDB stores this metadata and report snapshots. It does not store embeddings.
 
-The worker performs expensive ingestion outside the upload request. Queue payloads contain source/project IDs and a private file reference; uploaded bytes are not copied into Redis. API and worker must share their upload directory.
+The worker performs expensive ingestion outside the upload request. Queue payloads contain source, project, and user IDs; uploaded bytes, cloud URLs, and filesystem paths are not copied into new jobs. The worker resolves private storage references from MongoDB. Local sources require a shared API/worker upload directory; ImageKit sources are fetched through short-lived signed URLs and streamed to FastAPI without a local file.
 
 FastAPI has no user-facing CRUD or access to the Node upload directory. Internal requests require a constant-time comparison of the shared service secret. Parsing, chunking, provider calls, vector operations, and output validation belong here.
 
@@ -82,7 +82,7 @@ Mutating browser requests must have the configured origin. Production cookies ar
 
 The upload interface accepts multiple files, detects their initial source type by extension, and allows per-file overrides. It sends one file per request in sequence through the existing authenticated upload endpoint. Rejected files can be retried without resending accepted files; saved-but-unqueued and ambiguous network outcomes direct the user to Sources before resubmission. This keeps each request within the configured per-file memory and size limits.
 
-Upload validation enforces extension, actual UTF-8 text, no NUL bytes, and the configured size limit (20 MB by default). UUID storage filenames prevent user-controlled filesystem paths. Files stay outside public directories.
+Upload validation enforces extension, actual UTF-8 text, no NUL bytes, and the configured size limit (20 MB by default). UUID storage filenames prevent user-controlled filesystem paths. Files stay in a private local directory or are uploaded to ImageKit with `isPrivateFile=true`. Each source records its provider; missing provider markers mean local storage for compatibility. Cloud file IDs, stored filenames, and paths are hidden from public responses. Switching the configured provider changes new uploads without moving old files.
 
 Source states are UPLOADED → QUEUED → PROCESSING → READY, with bounded retries leading to FAILED. Worker concurrency defaults to one, ingestion attempts to three, and exponential backoff to five seconds initially. Queue retention is bounded to 100 completed and 200 failed jobs. Restart reconciliation requeues missing work from MongoDB.
 

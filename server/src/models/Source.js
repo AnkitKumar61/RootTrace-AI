@@ -14,7 +14,26 @@ const schema = new mongoose.Schema(
     },
     originalFileName: { type: String, required: true },
     storedFileName: { type: String, required: true, select: false },
-    filePath: { type: String, required: true, select: false },
+    filePath: {
+      type: String,
+      required: function () {
+        return this.storageProvider !== "imagekit";
+      },
+      select: false,
+    },
+    storageProvider: {
+      type: String,
+      enum: ["local", "imagekit"],
+      default: "local",
+      select: false,
+    },
+    storageFileId: {
+      type: String,
+      required: function () {
+        return this.storageProvider === "imagekit";
+      },
+      select: false,
+    },
     sourceType: { type: String, enum: ["log", "document"], required: true },
     mimeType: String,
     fileSize: Number,
@@ -37,5 +56,7 @@ export function publicSource(source) {
   const data = source.toObject ? source.toObject() : { ...source };
   delete data.filePath;
   delete data.storedFileName;
+  delete data.storageProvider;
+  delete data.storageFileId;
   return data;
 }

@@ -6,7 +6,7 @@ RootTrace investigates backend incidents using uploaded logs and engineering doc
 
 ## Explain the architecture in one minute
 
-React provides the account, project, upload, incident, and report screens. Express owns authentication and business records in MongoDB. Uploads save a private file and enqueue a small BullMQ job in Redis, then return 202. A separate worker streams the file to FastAPI. Python parses and chunks it, generates pretrained embeddings, and indexes them in Qdrant. Investigations retrieve READY project evidence, request structured output from Gemini, validate it, and persist the report through Express.
+React provides the account, project, upload, incident, and report screens. Express owns authentication and business records in MongoDB. Uploads save a private file locally or in ImageKit, enqueue a small BullMQ job in Redis, then return 202. A separate worker streams the file to FastAPI. Python parses and chunks it, generates pretrained embeddings, and indexes them in Qdrant. Investigations retrieve READY project evidence, request structured output from Gemini, validate it, and persist the report through Express.
 
 ## Frontend and REST
 
@@ -26,7 +26,7 @@ Authentication answers who made the request. Authorization answers whether that 
 
 MongoDB stores business metadata, processing state, and report snapshots. Mongoose defines these models and indexes. A partial unique index prevents simultaneous RUNNING investigations for one incident. MongoDB remains the durable source of work status if Redis queue data is lost.
 
-Redis holds BullMQ jobs, retry scheduling, and worker coordination. It is not the metadata database. Queue payloads are small file references and IDs. A dedicated worker lets uploads return quickly while expensive parsing/provider calls run separately.
+Redis holds BullMQ jobs, retry scheduling, and worker coordination. It is not the metadata database. New queue payloads contain IDs; private file references stay in MongoDB. A dedicated worker lets uploads return quickly while expensive parsing/provider calls run separately.
 
 Qdrant stores embedding vectors and evidence payloads. A vector represents semantic meaning in a numeric space; similar incident queries and source chunks tend to have high cosine similarity. Project and READY-source filters are sent with the vector query so another project's evidence never enters the result set.
 
@@ -70,7 +70,7 @@ These controls reduce unsupported output. They do not mathematically prove causa
 
 Project deletion first marks DELETING and disables new actions. Cleanup waits for outstanding work, removes vectors, files, and related metadata, and deletes the MongoDB project last. Checkpoints make a retry safe after partial completion. Repeating file/vector/record removal is harmless. No distributed transaction or lock is required for this initial deployment.
 
-The current design needs shared persistent API/worker upload storage and one FastAPI process for local cancellation. Multi-replica analysis would need a durable cancellation protocol. Worker concurrency, provider throughput, queue command quotas, upload storage, and dataset quality are the first scaling constraints.
+Local uploads need shared persistent API/worker storage. ImageKit uploads let those processes run separately: both use the same private storage credentials, and the worker fetches original bytes through signed links. Existing local files remain local when switching providers. One FastAPI process is required for local cancellation; multi-replica analysis would need a durable cancellation protocol. Worker concurrency, provider throughput, queue command quotas, upload storage, and dataset quality are the first scaling constraints.
 
 ## Files worth opening
 

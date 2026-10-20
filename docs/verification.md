@@ -1,5 +1,13 @@
 # Verification record
 
+## Private cloud storage — 2026-10-20
+
+All 30 Node, 10 React, and 35 Python tests passed, along with the frontend build, JavaScript/Python lint, dependency audit, and live readiness checks. Storage tests exercise private upload parameters through the real ImageKit SDK with a mocked transport, signed reads, bounded/truncated downloads, hidden storage references, ownership, retry queueing, cloud worker processing without local paths, and mixed local/cloud deletion after a lost delete response. An already-missing cloud file is safely treated as deleted, while transient failures retain project metadata for retry.
+
+Live checks uploaded a small fictional file in each supported format (`.log`, `.txt`, `.json`, `.md`), verified exact contents through signed reads, confirmed unsigned requests were rejected, and deleted those exact test files. With ImageKit selected, the full browser workflow passed: registration/login, seven fictional uploads, READY states, incident investigation, persisted report, original citation lines, ownership checks, responsive navigation, and project cleanup. An earlier saved ShopFlow report still opened its original local-file citation. No earlier user files were copied to ImageKit during this change.
+
+The ignored local configuration selects ImageKit for new uploads. Existing local sources continue to need their original upload directory. Public deployment and automatic migration of existing files have not been performed. Real service checks used small fictional fixtures; they do not establish the maximum file size or ongoing quota availability for an ImageKit account.
+
 ## LangChain integration — 2026-10-18
 
 The analysis service now uses LangChain's embedding interface, project-scoped retriever, chat prompt, and structured Gemini model chain. The migration preserves the public API, parser/chunker, embedding input formats, Qdrant collection/payloads, report schema, and citation references.
@@ -45,4 +53,4 @@ The product interface focuses on uploads, incidents, reports, and original file 
 
 Provider error, invalid output, weak evidence, and prompt-injection cases are controlled automated tests. They test handling and validation boundaries; they do not establish that a model will always resist every attack or correctly explain every production incident. Live checks use fictional fixtures and configured services.
 
-The application remains a single-analysis-process deployment with shared API/worker file storage. No public hosting, reverse-proxy TLS, production backups, or multi-replica operation has been exercised. These hosting-specific concerns are listed in the deployment guide.
+The application remains a single-analysis-process deployment. Local sources need shared API/worker file storage; ImageKit sources can be accessed from separate hosts. No public hosting, reverse-proxy TLS, production backups, or multi-replica operation has been exercised. These hosting-specific concerns are listed in the deployment guide.

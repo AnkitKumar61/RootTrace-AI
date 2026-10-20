@@ -7,7 +7,8 @@ import mongoose from "mongoose";
 import { testDatabase } from "./helpers.js";
 import { Project } from "../src/models/Project.js";
 import { Source } from "../src/models/Source.js";
-import { LocalStorage } from "../src/services/storage.js";
+import { LocalStorage, Storage } from "../src/services/storage.js";
+import { ImageKitStorage } from "../src/services/imagekitStorage.js";
 import { cleanupProject } from "../src/services/cleanup.js";
 let close, dir;
 before(async () => {
@@ -90,4 +91,73 @@ test("cleanup waits for active ingestion before removing anything", async () => 
     (e) => e.code === "CLEANUP_WAIT",
   );
   assert.ok(await Project.exists({ _id: project._id }));
+});
+
+test("mixed local and cloud cleanup resumes after a lost delete response and removes project last", async () => {
+  const local = new LocalStorage(dir);
+  const old = await local.save({
+    originalname: "legacy.log",
+    buffer: Buffer.from("fictional source"),
+  });
+  const project = await Project.create({
+    name: "Mixed cleanup",
+    userId: "123456789012345678901234",
+    status: "DELETING",
+  });
+  const legacy = await Source.create({
+    ...old,
+    projectId: project._id,
+    userId: project.userId,
+    originalFileName: "legacy.log",
+    sourceType: "log",
+  });
+  await Source.collection.updateOne(
+    { _id: legacy._id },
+    { $unset: { storageProvider: "" } },
+  );
+  await Source.create({
+    storageProvider: "imagekit",
+    storedFileName: "/roottrace/12345678-1234-1234-1234-123456789012.log",
+    storageFileId: "fictional-id",
+    projectId: project._id,
+    userId: project.userId,
+    originalFileName: "cloud.log",
+    sourceType: "log",
+  });
+  let calls = 0;
+  const cloud = new ImageKitStorage(
+    {
+      IMAGEKIT_URL_ENDPOINT: "https://ik.imagekit.io/fictional",
+      MAX_FILE_SIZE_MB: 20,
+    },
+    {
+      client: {
+        files: {
+          delete: async (id) => {
+            assert.equal(id, "fictional-id");
+            calls++;
+            throw { status: calls === 1 ? 503 : 404 };
+          },
+        },
+      },
+    },
+  );
+  const store = new Storage(
+    { STORAGE_PROVIDER: "imagekit" },
+    { local, imagekit: cloud },
+  );
+  const options = { store, removeVectors: async () => {} };
+  await assert.rejects(cleanupProject(String(project._id), options));
+  assert.ok(await Project.exists({ _id: project._id }));
+  assert.equal(await Source.countDocuments({ projectId: project._id }), 2);
+  assert.deepEqual(
+    (await Project.findById(project._id)).cleanupSteps.toObject(),
+    ["vectors"],
+  );
+  assert.deepEqual(await cleanupProject(String(project._id), options), {
+    deleted: true,
+  });
+  assert.equal(calls, 2);
+  assert.equal(await Source.countDocuments({ projectId: project._id }), 0);
+  assert.equal(await Project.findById(project._id), null);
 });

@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import { Source } from "../models/Source.js";
 import { Project } from "../models/Project.js";
 import { AppError } from "../utils/errors.js";
@@ -7,7 +6,7 @@ export async function processIngestion(job, { ingest } = {}) {
   const active = () => Project.exists({ _id: projectId, status: "ACTIVE" });
   if (!(await active())) return { skipped: true };
   const source = await Source.findOne({ _id: sourceId, projectId }).select(
-    "+filePath +storedFileName",
+    "+filePath +storedFileName +storageProvider +storageFileId",
   );
   if (!source) return { skipped: true };
   if (source.status === "READY") return { chunkCount: source.chunkCount };
@@ -26,8 +25,7 @@ export async function processIngestion(job, { ingest } = {}) {
     await job.updateProgress(value);
   };
   await Source.updateOne({ _id: sourceId }, { $inc: { attempts: 1 } });
-  await fs.access(source.filePath);
-  await progress(10, "Stored file validated");
+  await progress(10, "Stored source located");
   if (!(await active())) return { skipped: true };
   await progress(30, "Stored source accepted; parsing, embedding and indexing");
   if (!ingest)
@@ -72,6 +70,14 @@ export async function recordIngestionFailure(job, error) {
   else if (error?.code === "ANALYSIS_VALIDATION")
     processingError =
       "The analysis service could not process this file. Check its text content and supported format before retrying.";
+  else if (
+    ["STORAGE_UNAVAILABLE", "STORAGE_LIMIT", "SOURCE_FILE_MISSING"].includes(
+      error?.code,
+    )
+  )
+    processingError = terminal
+      ? "The uploaded file could not be read from storage. Check storage availability and retry this source."
+      : "File storage is unavailable. An automatic retry is scheduled.";
   await Source.updateOne(
     { _id: job.data.sourceId, status: { $ne: "READY" } },
     {

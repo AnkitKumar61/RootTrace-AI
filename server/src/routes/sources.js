@@ -60,7 +60,6 @@ export function sourceRoutes(services = {}) {
         sourceId: String(source._id),
         projectId: String(source.projectId),
         userId: String(source.userId),
-        filePath: source.filePath,
       });
     } catch {
       await Source.updateOne(
@@ -113,12 +112,12 @@ export function sourceRoutes(services = {}) {
           fileSize: req.file.size,
         });
       } catch (error) {
-        await store.remove(saved.storedFileName);
+        await store.remove(saved);
         throw error;
       }
       if (!(await Project.exists({ _id: req.project._id, status: "ACTIVE" }))) {
         await Source.deleteOne({ _id: source._id });
-        await store.remove(saved.storedFileName);
+        await store.remove(saved);
         throw new AppError(
           409,
           "PROJECT_DELETING",
@@ -148,10 +147,10 @@ export function sourceRoutes(services = {}) {
       const source = await Source.findOne({
         _id: req.params.sourceId,
         projectId: req.project._id,
-      }).select("+storedFileName");
+      }).select("+storedFileName +storageProvider +storageFileId");
       if (!source) throw new AppError(404, "NOT_FOUND", "Source not found.");
       const { start, limit } = paging.parse(req.query);
-      const lines = (await store.read(source.storedFileName)).split(/\r?\n/);
+      const lines = (await store.read(source)).split(/\r?\n/);
       res.json({
         fileName: source.originalFileName,
         start,
@@ -170,7 +169,7 @@ export function sourceRoutes(services = {}) {
       const source = await Source.findOne({
         _id: req.params.sourceId,
         projectId: req.project._id,
-      }).select("+filePath");
+      });
       if (!source) throw new AppError(404, "NOT_FOUND", "Source not found.");
       if (source.status !== "FAILED")
         throw new AppError(

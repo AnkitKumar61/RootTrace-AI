@@ -4,6 +4,7 @@ import request from "supertest";
 process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = "test-only-session-signing-value-12345";
 process.env.AI_SERVICE_SECRET = "test-only-internal-service-value-12345";
+process.env.STORAGE_PROVIDER = "local";
 export const { createApp } = await import("../src/app.js");
 export const origin = "http://localhost:5173";
 export async function testDatabase() {

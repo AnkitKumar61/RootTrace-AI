@@ -138,3 +138,33 @@ test("service failures and unknown errors use distinct safe messages", async () 
   assert.match(saved.processingError, /Processing failed after retries/);
   assert.doesNotMatch(saved.processingError, /private address/);
 });
+
+test("workers process cloud references without a local path and persist safe storage failures", async () => {
+  const { source, job } = await fixture();
+  await Source.updateOne(
+    { _id: source._id },
+    {
+      $set: { storageProvider: "imagekit", storageFileId: "fictional-id" },
+      $unset: { filePath: "" },
+    },
+  );
+  await processIngestion(job, {
+    ingest: async (stored) => {
+      assert.equal(stored.storageProvider, "imagekit");
+      assert.equal(stored.storageFileId, "fictional-id");
+      assert.equal(stored.filePath, undefined);
+      return { chunkCount: 1 };
+    },
+  });
+  assert.equal((await Source.findById(source._id)).status, "READY");
+  await Source.updateOne({ _id: source._id }, { status: "PROCESSING" });
+  job.attemptsMade = 3;
+  await recordIngestionFailure(
+    job,
+    new AppError(503, "STORAGE_UNAVAILABLE", "private key marker"),
+  );
+  const saved = await Source.findById(source._id);
+  assert.equal(saved.status, "FAILED");
+  assert.match(saved.processingError, /storage/);
+  assert.doesNotMatch(saved.processingError, /private key marker/);
+});
